@@ -64,7 +64,8 @@ export interface ParseServerOptions {
   databaseOptions: ?any;
   /* Adapter module for the database */
   databaseAdapter: ?Adapter<StorageAdapter>;
-  /* Full path to your cloud code main.js */
+  /* Full path to your cloud code main.js
+  :DEFAULT: cloud/main.js */
   cloud: ?string;
   /* A collection prefix for the classes
   :DEFAULT: '' */
@@ -182,7 +183,8 @@ export interface ParseServerOptions {
   cluster: ?NumberOrBoolean;
   /* middleware for express server, can be string or function */
   middleware: ?((() => void) | string);
-  /* Starts the liveQuery server */
+  /* Starts the liveQuery server
+  :DEFAULT: true */
   startLiveQueryServer: ?boolean;
   /* Live query server configuration options (will start the liveQuery server) */
   liveQueryServerOptions: ?LiveQueryServerOptions;

@@ -73,6 +73,7 @@ module.exports.ParseServerOptions = {
   cloud: {
     env: 'PARSE_SERVER_CLOUD',
     help: 'Full path to your cloud code main.js',
+    default: 'cloud/main.js',
   },
   cluster: {
     env: 'PARSE_SERVER_CLUSTER',
@@ -375,6 +376,7 @@ module.exports.ParseServerOptions = {
     env: 'PARSE_SERVER_START_LIVE_QUERY_SERVER',
     help: 'Starts the liveQuery server',
     action: parsers.booleanParser,
+    default: true,
   },
   userSensitiveFields: {
     env: 'PARSE_SERVER_USER_SENSITIVE_FIELDS',
