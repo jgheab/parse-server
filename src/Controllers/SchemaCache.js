@@ -7,11 +7,7 @@ import defaults from '../defaults';
 export default class SchemaCache {
   cache: Object;
 
-  constructor(
-    cacheController,
-    ttl = defaults.schemaCacheTTL,
-    singleCache = false
-  ) {
+  constructor(cacheController, ttl = defaults.schemaCacheTTL, singleCache = false) {
     this.ttl = ttl;
     if (typeof ttl == 'string') {
       this.ttl = parseInt(ttl);
@@ -34,7 +30,7 @@ export default class SchemaCache {
     if (!this.ttl) {
       return Promise.resolve(null);
     }
-    return this.cache.put(this.prefix + MAIN_SCHEMA, schema);
+    return this.cache.put(this.prefix + MAIN_SCHEMA, schema, this.ttl);
   }
 
   getOneSchema(className) {
