@@ -22,7 +22,7 @@ Parse.Cloud.beforeSave(Parse.User, async (request) => {
   var acl = user.getACL();
 
   if (!acl) {
-    acl = new Parse.ACL(request.objecte.objectId);
+    acl = new Parse.ACL(request.object.objectId);
     user.setACL(acl);
   }
   acl.setRoleReadAccess('admin', true);
