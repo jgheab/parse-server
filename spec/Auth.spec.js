@@ -83,8 +83,8 @@ describe('Auth', () => {
     it('should properly handle bcrypt upgrade', done => {
       const bcryptOriginal = require('bcrypt-nodejs');
       const bcryptNew = require('bcryptjs');
-      bcryptOriginal.hash('my1Long:password', null, null, function(err, res) {
-        bcryptNew.compare('my1Long:password', res, function(err, res) {
+      bcryptOriginal.hash('my1Long:password', null, null, function (err, res) {
+        bcryptNew.compare('my1Long:password', res, function (err, res) {
           expect(res).toBeTruthy();
           done();
         });
@@ -168,9 +168,9 @@ describe('Auth', () => {
         const acl = new Parse.ACL();
         const role = new Parse.Role('roleloadtest' + i, acl);
         role.getUsers().add([user]);
-        roles.push(role.save());
+        roles.push(role);
       }
-      const savedRoles = await Promise.all(roles);
+      const savedRoles = await Parse.Object.saveAll(roles);
       expect(savedRoles.length).toBe(rolesNumber);
       const cloudRoles = await userAuth.getRolesForUser();
       expect(cloudRoles.length).toBe(rolesNumber);
@@ -192,9 +192,9 @@ describe('Auth', () => {
         const acl = new Parse.ACL();
         const role = new Parse.Role('roleloadtest' + i, acl);
         role.getUsers().add([user]);
-        roles.push(role.save());
+        roles.push(role);
       }
-      const savedRoles = await Promise.all(roles);
+      const savedRoles = await Parse.Object.saveAll(roles);
       expect(savedRoles.length).toBe(rolesNumber);
       const cloudRoles = await userAuth.getRolesForUser();
       expect(cloudRoles.length).toBe(rolesNumber);
