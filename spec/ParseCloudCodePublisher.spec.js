@@ -2,8 +2,8 @@ const ParseCloudCodePublisher = require('../lib/LiveQuery/ParseCloudCodePublishe
   .ParseCloudCodePublisher;
 const Parse = require('parse/node');
 
-describe('ParseCloudCodePublisher', function () {
-  beforeEach(function (done) {
+describe('ParseCloudCodePublisher', function() {
+  beforeEach(function(done) {
     // Mock ParsePubSub
     const mockParsePubSub = {
       createPublisher: jasmine.createSpy('publish').and.returnValue({
@@ -15,11 +15,15 @@ describe('ParseCloudCodePublisher', function () {
         on: jasmine.createSpy('on'),
       }),
     };
-    jasmine.mockLibrary('../lib/LiveQuery/ParsePubSub', 'ParsePubSub', mockParsePubSub);
+    jasmine.mockLibrary(
+      '../lib/LiveQuery/ParsePubSub',
+      'ParsePubSub',
+      mockParsePubSub
+    );
     done();
   });
 
-  it('can initialize', function () {
+  it('can initialize', function() {
     const config = {};
     new ParseCloudCodePublisher(config);
 
@@ -27,7 +31,7 @@ describe('ParseCloudCodePublisher', function () {
     expect(ParsePubSub.createPublisher).toHaveBeenCalledWith(config);
   });
 
-  it('can handle cloud code afterSave request', function () {
+  it('can handle cloud code afterSave request', function() {
     const publisher = new ParseCloudCodePublisher({});
     publisher._onCloudCodeMessage = jasmine.createSpy('onCloudCodeMessage');
     const request = {};
@@ -39,7 +43,7 @@ describe('ParseCloudCodePublisher', function () {
     );
   });
 
-  it('can handle cloud code afterDelete request', function () {
+  it('can handle cloud code afterDelete request', function() {
     const publisher = new ParseCloudCodePublisher({});
     publisher._onCloudCodeMessage = jasmine.createSpy('onCloudCodeMessage');
     const request = {};
@@ -51,7 +55,7 @@ describe('ParseCloudCodePublisher', function () {
     );
   });
 
-  it('can handle cloud code request', function () {
+  it('can handle cloud code request', function() {
     const publisher = new ParseCloudCodePublisher({});
     const currentParseObject = new Parse.Object('Test');
     currentParseObject.set('key', 'value');
@@ -70,7 +74,7 @@ describe('ParseCloudCodePublisher', function () {
     expect(message.originalParseObject).toEqual(request.original._toFullJSON());
   });
 
-  afterEach(function () {
+  afterEach(function() {
     jasmine.restoreLibrary('../lib/LiveQuery/ParsePubSub', 'ParsePubSub');
   });
 });

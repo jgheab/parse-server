@@ -1,10 +1,14 @@
 #!/usr/bin/env node
-const MongoStorageAdapter = require('../../lib/Adapters/Storage/Mongo/MongoStorageAdapter').default;
-const { GridFSBucketAdapter } = require('../../lib/Adapters/Files/GridFSBucketAdapter');
+const MongoStorageAdapter = require('../../lib/Adapters/Storage/Mongo/MongoStorageAdapter')
+  .default;
+const {
+  GridFSBucketAdapter,
+} = require('../../lib/Adapters/Files/GridFSBucketAdapter');
 
 const ParseServer = require('../../lib/index').ParseServer;
 
-const databaseURI = 'mongodb://doesnotexist:27017/parseServerMongoAdapterTestDatabase';
+const databaseURI =
+  'mongodb://doesnotexist:27017/parseServerMongoAdapterTestDatabase';
 
 ParseServer.start({
   appId: 'test',

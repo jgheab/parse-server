@@ -22,7 +22,10 @@ describe('PushQueue', () => {
       })
         .then(() => {
           const config = Config.get(Parse.applicationId);
-          expect(config.pushWorker.channel).toEqual('my-specific-channel', 'pushWorker.channel');
+          expect(config.pushWorker.channel).toEqual(
+            'my-specific-channel',
+            'pushWorker.channel'
+          );
           expect(config.pushControllerQueue.channel).toEqual(
             'my-specific-channel',
             'pushWorker.channel'
@@ -51,9 +54,13 @@ describe('PushQueue', () => {
       })
         .then(() => {
           const config = Config.get(Parse.applicationId);
-          expect(PushQueue.defaultPushChannel()).toEqual('test-parse-server-push');
+          expect(PushQueue.defaultPushChannel()).toEqual(
+            'test-parse-server-push'
+          );
           expect(config.pushWorker.channel).toEqual('test-parse-server-push');
-          expect(config.pushControllerQueue.channel).toEqual('test-parse-server-push');
+          expect(config.pushControllerQueue.channel).toEqual(
+            'test-parse-server-push'
+          );
         })
         .then(done, done.fail);
     });

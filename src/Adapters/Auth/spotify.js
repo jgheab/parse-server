@@ -8,7 +8,10 @@ function validateAuthData(authData) {
     if (data && data.id == authData.id) {
       return;
     }
-    throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND, 'Spotify auth is invalid for this user.');
+    throw new Parse.Error(
+      Parse.Error.OBJECT_NOT_FOUND,
+      'Spotify auth is invalid for this user.'
+    );
   });
 }
 
@@ -16,13 +19,19 @@ function validateAuthData(authData) {
 function validateAppId(appIds, authData) {
   var access_token = authData.access_token;
   if (!appIds.length) {
-    throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND, 'Spotify auth is not configured.');
+    throw new Parse.Error(
+      Parse.Error.OBJECT_NOT_FOUND,
+      'Spotify auth is not configured.'
+    );
   }
   return request('me', access_token).then(data => {
     if (data && appIds.indexOf(data.id) != -1) {
       return;
     }
-    throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND, 'Spotify auth is invalid for this user.');
+    throw new Parse.Error(
+      Parse.Error.OBJECT_NOT_FOUND,
+      'Spotify auth is invalid for this user.'
+    );
   });
 }
 

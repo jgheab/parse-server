@@ -17,7 +17,10 @@ export class LogsRouter extends PromiseRouter {
 
   validateRequest(req) {
     if (!req.config || !req.config.loggerController) {
-      throw new Parse.Error(Parse.Error.PUSH_MISCONFIGURED, 'Logger adapter is not available');
+      throw new Parse.Error(
+        Parse.Error.PUSH_MISCONFIGURED,
+        'Logger adapter is not available'
+      );
     }
   }
 

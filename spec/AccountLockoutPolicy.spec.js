@@ -1,10 +1,8 @@
 'use strict';
 
 const Config = require('../lib/Config');
-const Definitions = require('../lib/Options/Definitions');
-const request = require('../lib/request');
 
-const loginWithWrongCredentialsShouldFail = function (username, password) {
+const loginWithWrongCredentialsShouldFail = function(username, password) {
   return new Promise((resolve, reject) => {
     Parse.User.logIn(username, password)
       .then(() => reject('login should have failed'))
@@ -18,7 +16,7 @@ const loginWithWrongCredentialsShouldFail = function (username, password) {
   });
 };
 
-const isAccountLockoutError = function (username, password, duration, waitTime) {
+const isAccountLockoutError = function(username, password, duration, waitTime) {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
       Parse.User.logIn(username, password)
@@ -52,17 +50,28 @@ describe('Account Lockout Policy: ', () => {
         return user.signUp(null);
       })
       .then(() => {
-        return loginWithWrongCredentialsShouldFail('username1', 'incorrect password 1');
+        return loginWithWrongCredentialsShouldFail(
+          'username1',
+          'incorrect password 1'
+        );
       })
       .then(() => {
-        return loginWithWrongCredentialsShouldFail('username1', 'incorrect password 2');
+        return loginWithWrongCredentialsShouldFail(
+          'username1',
+          'incorrect password 2'
+        );
       })
       .then(() => {
-        return loginWithWrongCredentialsShouldFail('username1', 'incorrect password 3');
+        return loginWithWrongCredentialsShouldFail(
+          'username1',
+          'incorrect password 3'
+        );
       })
       .then(() => done())
       .catch(err => {
-        fail('allow unlimited failed login attempts failed: ' + JSON.stringify(err));
+        fail(
+          'allow unlimited failed login attempts failed: ' + JSON.stringify(err)
+        );
         done();
       });
   });
@@ -84,11 +93,15 @@ describe('Account Lockout Policy: ', () => {
       .catch(err => {
         if (
           err &&
-          err === 'Account lockout duration should be greater than 0 and less than 100000'
+          err ===
+            'Account lockout duration should be greater than 0 and less than 100000'
         ) {
           done();
         } else {
-          fail('set duration to an invalid number test failed: ' + JSON.stringify(err));
+          fail(
+            'set duration to an invalid number test failed: ' +
+              JSON.stringify(err)
+          );
           done();
         }
       });
@@ -111,11 +124,15 @@ describe('Account Lockout Policy: ', () => {
       .catch(err => {
         if (
           err &&
-          err === 'Account lockout threshold should be an integer greater than 0 and less than 1000'
+          err ===
+            'Account lockout threshold should be an integer greater than 0 and less than 1000'
         ) {
           done();
         } else {
-          fail('set threshold to an invalid number test failed: ' + JSON.stringify(err));
+          fail(
+            'set threshold to an invalid number test failed: ' +
+              JSON.stringify(err)
+          );
           done();
         }
       });
@@ -138,11 +155,14 @@ describe('Account Lockout Policy: ', () => {
       .catch(err => {
         if (
           err &&
-          err === 'Account lockout threshold should be an integer greater than 0 and less than 1000'
+          err ===
+            'Account lockout threshold should be an integer greater than 0 and less than 1000'
         ) {
           done();
         } else {
-          fail('threshold value < 1 is invalid test failed: ' + JSON.stringify(err));
+          fail(
+            'threshold value < 1 is invalid test failed: ' + JSON.stringify(err)
+          );
           done();
         }
       });
@@ -165,11 +185,15 @@ describe('Account Lockout Policy: ', () => {
       .catch(err => {
         if (
           err &&
-          err === 'Account lockout threshold should be an integer greater than 0 and less than 1000'
+          err ===
+            'Account lockout threshold should be an integer greater than 0 and less than 1000'
         ) {
           done();
         } else {
-          fail('threshold value > 999 is invalid test failed: ' + JSON.stringify(err));
+          fail(
+            'threshold value > 999 is invalid test failed: ' +
+              JSON.stringify(err)
+          );
           done();
         }
       });
@@ -192,11 +216,14 @@ describe('Account Lockout Policy: ', () => {
       .catch(err => {
         if (
           err &&
-          err === 'Account lockout duration should be greater than 0 and less than 100000'
+          err ===
+            'Account lockout duration should be greater than 0 and less than 100000'
         ) {
           done();
         } else {
-          fail('duration value < 1 is invalid test failed: ' + JSON.stringify(err));
+          fail(
+            'duration value < 1 is invalid test failed: ' + JSON.stringify(err)
+          );
           done();
         }
       });
@@ -219,11 +246,15 @@ describe('Account Lockout Policy: ', () => {
       .catch(err => {
         if (
           err &&
-          err === 'Account lockout duration should be greater than 0 and less than 100000'
+          err ===
+            'Account lockout duration should be greater than 0 and less than 100000'
         ) {
           done();
         } else {
-          fail('duration value > 99999 is invalid test failed: ' + JSON.stringify(err));
+          fail(
+            'duration value > 99999 is invalid test failed: ' +
+              JSON.stringify(err)
+          );
           done();
         }
       });
@@ -245,10 +276,16 @@ describe('Account Lockout Policy: ', () => {
         return user.signUp();
       })
       .then(() => {
-        return loginWithWrongCredentialsShouldFail('username2', 'wrong password');
+        return loginWithWrongCredentialsShouldFail(
+          'username2',
+          'wrong password'
+        );
       })
       .then(() => {
-        return loginWithWrongCredentialsShouldFail('username2', 'wrong password');
+        return loginWithWrongCredentialsShouldFail(
+          'username2',
+          'wrong password'
+        );
       })
       .then(() => {
         return isAccountLockoutError('username2', 'wrong password', 1, 1);
@@ -257,7 +294,10 @@ describe('Account Lockout Policy: ', () => {
         done();
       })
       .catch(err => {
-        fail('lock account after failed login attempts test failed: ' + JSON.stringify(err));
+        fail(
+          'lock account after failed login attempts test failed: ' +
+            JSON.stringify(err)
+        );
         done();
       });
   });
@@ -278,10 +318,16 @@ describe('Account Lockout Policy: ', () => {
         return user.signUp();
       })
       .then(() => {
-        return loginWithWrongCredentialsShouldFail('username3', 'wrong password');
+        return loginWithWrongCredentialsShouldFail(
+          'username3',
+          'wrong password'
+        );
       })
       .then(() => {
-        return loginWithWrongCredentialsShouldFail('username3', 'wrong password');
+        return loginWithWrongCredentialsShouldFail(
+          'username3',
+          'wrong password'
+        );
       })
       .then(() => {
         return isAccountLockoutError('username3', 'wrong password', 0.05, 1);
@@ -294,7 +340,10 @@ describe('Account Lockout Policy: ', () => {
         done();
       })
       .catch(err => {
-        fail('account should be locked for duration mins test failed: ' + JSON.stringify(err));
+        fail(
+          'account should be locked for duration mins test failed: ' +
+            JSON.stringify(err)
+        );
         done();
       });
   });
@@ -315,10 +364,16 @@ describe('Account Lockout Policy: ', () => {
         return user.signUp();
       })
       .then(() => {
-        return loginWithWrongCredentialsShouldFail('username4', 'wrong password');
+        return loginWithWrongCredentialsShouldFail(
+          'username4',
+          'wrong password'
+        );
       })
       .then(() => {
-        return loginWithWrongCredentialsShouldFail('username4', 'wrong password');
+        return loginWithWrongCredentialsShouldFail(
+          'username4',
+          'wrong password'
+        );
       })
       .then(() => {
         // allow locked user to login after 3 seconds with a valid userid and password
@@ -340,127 +395,5 @@ describe('Account Lockout Policy: ', () => {
         );
         done();
       });
-  });
-});
-
-describe('lockout with password reset option', () => {
-  let sendPasswordResetEmail;
-
-  async function setup(options = {}) {
-    const accountLockout = Object.assign(
-      {
-        duration: 10000,
-        threshold: 1,
-      },
-      options
-    );
-    const config = {
-      appName: 'exampleApp',
-      accountLockout: accountLockout,
-      publicServerURL: 'http://localhost:8378/1',
-      emailAdapter: {
-        sendVerificationEmail: () => Promise.resolve(),
-        sendPasswordResetEmail: () => Promise.resolve(),
-        sendMail: () => {},
-      },
-    };
-    await reconfigureServer(config);
-
-    sendPasswordResetEmail = spyOn(config.emailAdapter, 'sendPasswordResetEmail').and.callThrough();
-  }
-
-  it('accepts valid unlockOnPasswordReset option', async () => {
-    const values = [true, false];
-
-    for (const value of values) {
-      await expectAsync(setup({ unlockOnPasswordReset: value })).toBeResolved();
-    }
-  });
-
-  it('rejects invalid unlockOnPasswordReset option', async () => {
-    const values = ['a', 0, {}, [], null];
-
-    for (const value of values) {
-      await expectAsync(setup({ unlockOnPasswordReset: value })).toBeRejected();
-    }
-  });
-
-  it('uses default value if unlockOnPasswordReset is not set', async () => {
-    await expectAsync(setup({ unlockOnPasswordReset: undefined })).toBeResolved();
-
-    const parseConfig = Config.get(Parse.applicationId);
-    expect(parseConfig.accountLockout.unlockOnPasswordReset).toBe(
-      Definitions.AccountLockoutOptions.unlockOnPasswordReset.default
-    );
-  });
-
-  it('allow login for locked account after password reset', async () => {
-    await setup({ unlockOnPasswordReset: true });
-    const config = Config.get(Parse.applicationId);
-
-    const user = new Parse.User();
-    const username = 'exampleUsername';
-    const password = 'examplePassword';
-    user.setUsername(username);
-    user.setPassword(password);
-    user.setEmail('mail@example.com');
-    await user.signUp();
-
-    await expectAsync(Parse.User.logIn(username, 'incorrectPassword')).toBeRejected();
-    await expectAsync(Parse.User.logIn(username, password)).toBeRejected();
-
-    await Parse.User.requestPasswordReset(user.getEmail());
-    await expectAsync(Parse.User.logIn(username, password)).toBeRejected();
-
-    const link = sendPasswordResetEmail.calls.all()[0].args[0].link;
-    const linkUrl = new URL(link);
-    const token = linkUrl.searchParams.get('token');
-    const newPassword = 'newPassword';
-    await request({
-      method: 'POST',
-      url: `${config.publicServerURL}/apps/test/request_password_reset`,
-      body: `new_password=${newPassword}&token=${token}&username=${username}`,
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      followRedirects: false,
-    });
-
-    await expectAsync(Parse.User.logIn(username, newPassword)).toBeResolved();
-  });
-
-  it('reject login for locked account after password reset (default)', async () => {
-    await setup();
-    const config = Config.get(Parse.applicationId);
-
-    const user = new Parse.User();
-    const username = 'exampleUsername';
-    const password = 'examplePassword';
-    user.setUsername(username);
-    user.setPassword(password);
-    user.setEmail('mail@example.com');
-    await user.signUp();
-
-    await expectAsync(Parse.User.logIn(username, 'incorrectPassword')).toBeRejected();
-    await expectAsync(Parse.User.logIn(username, password)).toBeRejected();
-
-    await Parse.User.requestPasswordReset(user.getEmail());
-    await expectAsync(Parse.User.logIn(username, password)).toBeRejected();
-
-    const link = sendPasswordResetEmail.calls.all()[0].args[0].link;
-    const linkUrl = new URL(link);
-    const token = linkUrl.searchParams.get('token');
-    const newPassword = 'newPassword';
-    await request({
-      method: 'POST',
-      url: `${config.publicServerURL}/apps/test/request_password_reset`,
-      body: `new_password=${newPassword}&token=${token}&username=${username}`,
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      followRedirects: false,
-    });
-
-    await expectAsync(Parse.User.logIn(username, newPassword)).toBeRejected();
   });
 });

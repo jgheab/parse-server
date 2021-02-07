@@ -3,11 +3,7 @@
 var bcrypt = require('bcryptjs');
 
 try {
-  const _bcrypt = require('@node-rs/bcrypt');
-  bcrypt = {
-    hash: _bcrypt.hash,
-    compare: _bcrypt.verify,
-  };
+  bcrypt = require('bcrypt');
 } catch (e) {
   /* */
 }

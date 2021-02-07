@@ -9,9 +9,7 @@ export class LiveQueryController {
     if (!config || !config.classNames) {
       this.classNames = new Set();
     } else if (config.classNames instanceof Array) {
-      const classNames = config.classNames
-        .map(name => new RegExp("^" + name + "$"));
-      this.classNames = new Set(classNames);
+      this.classNames = new Set(config.classNames);
     } else {
       throw 'liveQuery.classes should be an array of string';
     }
@@ -27,7 +25,11 @@ export class LiveQueryController {
     if (!this.hasLiveQuery(className)) {
       return;
     }
-    const req = this._makePublisherRequest(currentObject, originalObject, classLevelPermissions);
+    const req = this._makePublisherRequest(
+      currentObject,
+      originalObject,
+      classLevelPermissions
+    );
     this.liveQueryPublisher.onCloudCodeAfterSave(req);
   }
 
@@ -40,20 +42,23 @@ export class LiveQueryController {
     if (!this.hasLiveQuery(className)) {
       return;
     }
-    const req = this._makePublisherRequest(currentObject, originalObject, classLevelPermissions);
+    const req = this._makePublisherRequest(
+      currentObject,
+      originalObject,
+      classLevelPermissions
+    );
     this.liveQueryPublisher.onCloudCodeAfterDelete(req);
   }
 
   hasLiveQuery(className: string): boolean {
-    for (const name of this.classNames) {
-      if (name.test(className)) {
-        return true;
-      }
-    }
-    return false;
+    return this.classNames.has(className);
   }
 
-  _makePublisherRequest(currentObject: any, originalObject: any, classLevelPermissions: ?any): any {
+  _makePublisherRequest(
+    currentObject: any,
+    originalObject: any,
+    classLevelPermissions: ?any
+  ): any {
     const req = {
       object: currentObject,
     };

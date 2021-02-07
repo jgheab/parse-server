@@ -16,7 +16,10 @@ const hasAllPODobject = () => {
   obj.set('aObject', { k1: 'value', k2: true, k3: 5 });
   obj.set('aArray', ['contents', true, 5]);
   obj.set('aGeoPoint', new Parse.GeoPoint({ latitude: 0, longitude: 0 }));
-  obj.set('aFile', new Parse.File('f.txt', { base64: 'V29ya2luZyBhdCBQYXJzZSBpcyBncmVhdCE=' }));
+  obj.set(
+    'aFile',
+    new Parse.File('f.txt', { base64: 'V29ya2luZyBhdCBQYXJzZSBpcyBncmVhdCE=' })
+  );
   return obj;
 };
 
@@ -289,7 +292,9 @@ describe('SchemaController', () => {
             fail('Class permissions should have rejected this query.');
           },
           err => {
-            expect(err.message).toEqual('Permission denied for action count on class Stuff.');
+            expect(err.message).toEqual(
+              'Permission denied for action count on class Stuff.'
+            );
             done();
           }
         )
@@ -436,9 +441,19 @@ describe('SchemaController', () => {
       schema
         .validateObject('NewClass', { foo: 2 })
         .then(() => schema.reloadData())
-        .then(() => schema.updateClass('NewClass', {}, newLevelPermissions, {}, config.database))
+        .then(() =>
+          schema.updateClass(
+            'NewClass',
+            {},
+            newLevelPermissions,
+            {},
+            config.database
+          )
+        )
         .then(actualSchema => {
-          expect(dd(actualSchema.classLevelPermissions, newLevelPermissions)).toEqual(undefined);
+          expect(
+            dd(actualSchema.classLevelPermissions, newLevelPermissions)
+          ).toEqual(undefined);
           done();
         })
         .catch(error => {
@@ -524,12 +539,14 @@ describe('SchemaController', () => {
 
   it('refuses to create classes with invalid names', done => {
     config.database.loadSchema().then(schema => {
-      schema.addClassIfNotExists('_InvalidName', { foo: { type: 'String' } }).catch(error => {
-        expect(error.message).toEqual(
-          'Invalid classname: _InvalidName, classnames can only have alphanumeric characters and _, and must start with an alpha character '
-        );
-        done();
-      });
+      schema
+        .addClassIfNotExists('_InvalidName', { foo: { type: 'String' } })
+        .catch(error => {
+          expect(error.message).toEqual(
+            'Invalid classname: _InvalidName, classnames can only have alphanumeric characters and _, and must start with an alpha character '
+          );
+          done();
+        });
     });
   });
 
@@ -551,7 +568,9 @@ describe('SchemaController', () => {
   it('refuses to explicitly create the default fields for custom classes', done => {
     config.database
       .loadSchema()
-      .then(schema => schema.addClassIfNotExists('NewClass', { objectId: { type: 'String' } }))
+      .then(schema =>
+        schema.addClassIfNotExists('NewClass', { objectId: { type: 'String' } })
+      )
       .catch(error => {
         expect(error.code).toEqual(136);
         expect(error.message).toEqual('field objectId cannot be added');
@@ -712,7 +731,15 @@ describe('SchemaController', () => {
       schema
         .validateObject('NewClass', {})
         .then(() => schema.reloadData())
-        .then(() => schema.updateClass('NewClass', {}, levelPermissions, {}, config.database))
+        .then(() =>
+          schema.updateClass(
+            'NewClass',
+            {},
+            levelPermissions,
+            {},
+            config.database
+          )
+        )
         .then(done.fail)
         .catch(error => {
           expect(error.code).toEqual(Parse.Error.INVALID_JSON);
@@ -735,7 +762,15 @@ describe('SchemaController', () => {
       schema
         .validateObject('NewClass', {})
         .then(() => schema.reloadData())
-        .then(() => schema.updateClass('NewClass', {}, levelPermissions, {}, config.database))
+        .then(() =>
+          schema.updateClass(
+            'NewClass',
+            {},
+            levelPermissions,
+            {},
+            config.database
+          )
+        )
         .then(done.fail)
         .catch(error => {
           expect(error.code).toEqual(Parse.Error.INVALID_JSON);
@@ -984,7 +1019,9 @@ describe('SchemaController', () => {
   it('refuses to delete invalid fields', done => {
     config.database
       .loadSchema()
-      .then(schema => schema.deleteField('invalid field name', 'ValidClassName'))
+      .then(schema =>
+        schema.deleteField('invalid field name', 'ValidClassName')
+      )
       .catch(error => {
         expect(error.code).toEqual(Parse.Error.INVALID_KEY_NAME);
         done();
@@ -1020,7 +1057,9 @@ describe('SchemaController', () => {
       .then(schema => schema.deleteField('missingField', 'HasAllPOD'))
       .catch(error => {
         expect(error.code).toEqual(255);
-        expect(error.message).toEqual('Field missingField does not exist, cannot delete.');
+        expect(error.message).toEqual(
+          'Field missingField does not exist, cannot delete.'
+        );
         done();
       });
   });
@@ -1036,19 +1075,35 @@ describe('SchemaController', () => {
         relation.add(obj1);
         return obj2.save();
       })
-      .then(() => config.database.collectionExists('_Join:aRelation:HasPointersAndRelations'))
+      .then(() =>
+        config.database.collectionExists(
+          '_Join:aRelation:HasPointersAndRelations'
+        )
+      )
       .then(exists => {
         if (!exists) {
           fail('Relation collection ' + 'should exist after save.');
         }
       })
       .then(() => config.database.loadSchema())
-      .then(schema => schema.deleteField('aRelation', 'HasPointersAndRelations', config.database))
-      .then(() => config.database.collectionExists('_Join:aRelation:HasPointersAndRelations'))
+      .then(schema =>
+        schema.deleteField(
+          'aRelation',
+          'HasPointersAndRelations',
+          config.database
+        )
+      )
+      .then(() =>
+        config.database.collectionExists(
+          '_Join:aRelation:HasPointersAndRelations'
+        )
+      )
       .then(
         exists => {
           if (exists) {
-            fail('Relation collection should not exist after deleting relation field.');
+            fail(
+              'Relation collection should not exist after deleting relation field.'
+            );
           }
           done();
         },
@@ -1088,7 +1143,9 @@ describe('SchemaController', () => {
           };
           expect(dd(actualSchema, expectedSchema)).toEqual(undefined);
         })
-        .then(() => config.database.collectionExists('_Join:relationField:NewClass'))
+        .then(() =>
+          config.database.collectionExists('_Join:relationField:NewClass')
+        )
         .then(exist => {
           on_db(
             'postgres',
@@ -1101,7 +1158,9 @@ describe('SchemaController', () => {
             }
           );
         })
-        .then(() => schema.deleteField('relationField', 'NewClass', config.database))
+        .then(() =>
+          schema.deleteField('relationField', 'NewClass', config.database)
+        )
         .then(() => schema.reloadData())
         .then(() => {
           const expectedSchema = {
@@ -1110,7 +1169,9 @@ describe('SchemaController', () => {
             createdAt: { type: 'Date' },
             ACL: { type: 'ACL' },
           };
-          expect(dd(schema.schemaData.NewClass.fields, expectedSchema)).toEqual(undefined);
+          expect(dd(schema.schemaData.NewClass.fields, expectedSchema)).toEqual(
+            undefined
+          );
         })
         .then(done)
         .catch(done.fail);
@@ -1123,7 +1184,9 @@ describe('SchemaController', () => {
     const obj2 = hasAllPODobject();
     Parse.Object.saveAll([obj1, obj2])
       .then(() => config.database.loadSchema())
-      .then(schema => schema.deleteField('aString', 'HasAllPOD', config.database))
+      .then(schema =>
+        schema.deleteField('aString', 'HasAllPOD', config.database)
+      )
       .then(() => new Parse.Query('HasAllPOD').get(obj1.id))
       .then(obj1Reloaded => {
         expect(obj1Reloaded.get('aString')).toEqual(undefined);
@@ -1131,7 +1194,10 @@ describe('SchemaController', () => {
         obj1Reloaded
           .save()
           .then(obj1reloadedAgain => {
-            expect(obj1reloadedAgain.get('aString')).toEqual(['not a string', 'this time']);
+            expect(obj1reloadedAgain.get('aString')).toEqual([
+              'not a string',
+              'this time',
+            ]);
             return new Parse.Query('HasAllPOD').get(obj2.id);
           })
           .then(obj2reloaded => {
@@ -1158,7 +1224,9 @@ describe('SchemaController', () => {
         expect(obj1.get('aPointer').id).toEqual(obj1.id);
       })
       .then(() => config.database.loadSchema())
-      .then(schema => schema.deleteField('aPointer', 'NewClass', config.database))
+      .then(schema =>
+        schema.deleteField('aPointer', 'NewClass', config.database)
+      )
       .then(() => new Parse.Query('NewClass').get(obj1.id))
       .then(obj1 => {
         expect(obj1.get('aPointer')).toEqual(undefined);
@@ -1314,19 +1382,29 @@ describe('SchemaController', () => {
 
   it('properly handles volatile _Schemas', done => {
     function validateSchemaStructure(schema) {
-      expect(Object.prototype.hasOwnProperty.call(schema, 'className')).toBe(true);
+      expect(Object.prototype.hasOwnProperty.call(schema, 'className')).toBe(
+        true
+      );
       expect(Object.prototype.hasOwnProperty.call(schema, 'fields')).toBe(true);
-      expect(Object.prototype.hasOwnProperty.call(schema, 'classLevelPermissions')).toBe(true);
+      expect(
+        Object.prototype.hasOwnProperty.call(schema, 'classLevelPermissions')
+      ).toBe(true);
     }
     function validateSchemaDataStructure(schemaData) {
       Object.keys(schemaData).forEach(className => {
         const schema = schemaData[className];
         // Hooks has className...
         if (className != '_Hooks') {
-          expect(Object.prototype.hasOwnProperty.call(schema, 'className')).toBe(false);
+          expect(
+            Object.prototype.hasOwnProperty.call(schema, 'className')
+          ).toBe(false);
         }
-        expect(Object.prototype.hasOwnProperty.call(schema, 'fields')).toBe(false);
-        expect(Object.prototype.hasOwnProperty.call(schema, 'classLevelPermissions')).toBe(false);
+        expect(Object.prototype.hasOwnProperty.call(schema, 'fields')).toBe(
+          false
+        );
+        expect(
+          Object.prototype.hasOwnProperty.call(schema, 'classLevelPermissions')
+        ).toBe(false);
       });
     }
     let schema;
@@ -1352,17 +1430,26 @@ describe('SchemaController', () => {
   it('setAllClasses return classes if cache fails', async () => {
     const schema = await config.database.loadSchema();
 
-    spyOn(schema._cache, 'setAllClasses').and.callFake(() => Promise.reject('Oops!'));
+    spyOn(schema._cache, 'setAllClasses').and.callFake(() =>
+      Promise.reject('Oops!')
+    );
     const errorSpy = spyOn(console, 'error').and.callFake(() => {});
     const allSchema = await schema.setAllClasses();
 
     expect(allSchema).toBeDefined();
-    expect(errorSpy).toHaveBeenCalledWith('Error saving schema to cache:', 'Oops!');
+    expect(errorSpy).toHaveBeenCalledWith(
+      'Error saving schema to cache:',
+      'Oops!'
+    );
   });
 
   it('should not throw on null field types', async () => {
     const schema = await config.database.loadSchema();
-    const result = await schema.enforceFieldExists('NewClass', 'fieldName', null);
+    const result = await schema.enforceFieldExists(
+      'NewClass',
+      'fieldName',
+      null
+    );
     expect(result).toBeUndefined();
   });
 
@@ -1418,7 +1505,9 @@ describe('Class Level Permissions for requiredAuth', () => {
           done();
         },
         e => {
-          expect(e.message).toEqual('Permission denied, user needs to be authenticated.');
+          expect(e.message).toEqual(
+            'Permission denied, user needs to be authenticated.'
+          );
           done();
         }
       );
@@ -1517,7 +1606,9 @@ describe('Class Level Permissions for requiredAuth', () => {
           done();
         },
         e => {
-          expect(e.message).toEqual('Permission denied, user needs to be authenticated.');
+          expect(e.message).toEqual(
+            'Permission denied, user needs to be authenticated.'
+          );
           done();
         }
       );
@@ -1605,7 +1696,9 @@ describe('Class Level Permissions for requiredAuth', () => {
           done();
         },
         e => {
-          expect(e.message).toEqual('Permission denied, user needs to be authenticated.');
+          expect(e.message).toEqual(
+            'Permission denied, user needs to be authenticated.'
+          );
           done();
         }
       );
@@ -1650,7 +1743,9 @@ describe('Class Level Permissions for requiredAuth', () => {
           done();
         },
         e => {
-          expect(e.message).toEqual('Permission denied, user needs to be authenticated.');
+          expect(e.message).toEqual(
+            'Permission denied, user needs to be authenticated.'
+          );
           done();
         }
       );

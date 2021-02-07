@@ -1,14 +1,15 @@
-const ParseWebSocket = require('../lib/LiveQuery/ParseWebSocketServer').ParseWebSocket;
+const ParseWebSocket = require('../lib/LiveQuery/ParseWebSocketServer')
+  .ParseWebSocket;
 
-describe('ParseWebSocket', function () {
-  it('can be initialized', function () {
+describe('ParseWebSocket', function() {
+  it('can be initialized', function() {
     const ws = {};
     const parseWebSocket = new ParseWebSocket(ws);
 
     expect(parseWebSocket.ws).toBe(ws);
   });
 
-  it('can handle disconnect event', function (done) {
+  it('can handle disconnect event', function(done) {
     const ws = {
       onclose: () => {},
     };
@@ -19,7 +20,7 @@ describe('ParseWebSocket', function () {
     ws.onclose();
   });
 
-  it('can handle message event', function (done) {
+  it('can handle message event', function(done) {
     const ws = {
       onmessage: () => {},
     };
@@ -30,7 +31,7 @@ describe('ParseWebSocket', function () {
     ws.onmessage();
   });
 
-  it('can send a message', function () {
+  it('can send a message', function() {
     const ws = {
       send: jasmine.createSpy('send'),
     };

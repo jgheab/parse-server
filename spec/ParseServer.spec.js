@@ -1,7 +1,8 @@
 'use strict';
 /* Tests for ParseServer.js */
 const express = require('express');
-const MongoStorageAdapter = require('../lib/Adapters/Storage/Mongo/MongoStorageAdapter').default;
+const MongoStorageAdapter = require('../lib/Adapters/Storage/Mongo/MongoStorageAdapter')
+  .default;
 const PostgresStorageAdapter = require('../lib/Adapters/Storage/Postgres/PostgresStorageAdapter')
   .default;
 const ParseServer = require('../lib/ParseServer').default;
@@ -12,7 +13,7 @@ describe('Server Url Checks', () => {
   let server;
   beforeAll(done => {
     const app = express();
-    app.get('/health', function (req, res) {
+    app.get('/health', function(req, res) {
       res.json({
         status: 'ok',
       });
@@ -26,7 +27,7 @@ describe('Server Url Checks', () => {
 
   it('validate good server url', done => {
     Parse.serverURL = 'http://localhost:13376';
-    ParseServer.verifyServerUrl(function (result) {
+    ParseServer.verifyServerUrl(function(result) {
       if (!result) {
         done.fail('Did not pass valid url');
       }
@@ -37,7 +38,7 @@ describe('Server Url Checks', () => {
   it('mark bad server url', done => {
     spyOn(console, 'warn').and.callFake(() => {});
     Parse.serverURL = 'notavalidurl';
-    ParseServer.verifyServerUrl(function (result) {
+    ParseServer.verifyServerUrl(function(result) {
       if (result) {
         done.fail('Did not mark invalid url');
       }
@@ -46,8 +47,10 @@ describe('Server Url Checks', () => {
   });
 
   xit('handleShutdown, close connection', done => {
-    const mongoURI = 'mongodb://localhost:27017/parseServerMongoAdapterTestDatabase';
-    const postgresURI = 'postgres://localhost:5432/parse_server_postgres_adapter_test_database';
+    const mongoURI =
+      'mongodb://localhost:27017/parseServerMongoAdapterTestDatabase';
+    const postgresURI =
+      'postgres://localhost:5432/parse_server_postgres_adapter_test_database';
     let databaseAdapter;
     if (process.env.PARSE_SERVER_TEST_DB === 'postgres') {
       databaseAdapter = new PostgresStorageAdapter({
@@ -89,7 +92,9 @@ describe('Server Url Checks', () => {
   });
 
   it('does not have unhandled promise rejection in the case of load error', done => {
-    const parseServerProcess = spawn(path.resolve(__dirname, './support/FailingServer.js'));
+    const parseServerProcess = spawn(
+      path.resolve(__dirname, './support/FailingServer.js')
+    );
     let stdout;
     let stderr;
     parseServerProcess.stdout.on('data', data => {

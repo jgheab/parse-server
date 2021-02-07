@@ -51,7 +51,9 @@ const transformQueryConstraintInputToParse = (
   parentConstraints,
   parseClasses
 ) => {
-  const fields = parseClasses.find(parseClass => parseClass.className === className).fields;
+  const fields = parseClasses.find(
+    parseClass => parseClass.className === className
+  ).fields;
   if (parentFieldName === 'id' && className) {
     Object.keys(constraints).forEach(constraintName => {
       const constraintValue = constraints[constraintName];
@@ -108,7 +110,12 @@ const transformQueryConstraintInputToParse = (
      *      }
      *   }
      */
-    if (fieldValue.key && fieldValue.value && parentConstraints && parentFieldName) {
+    if (
+      fieldValue.key &&
+      fieldValue.value &&
+      parentConstraints &&
+      parentFieldName
+    ) {
       delete parentConstraints[parentFieldName];
       parentConstraints[`${parentFieldName}.${fieldValue.key}`] = {
         ...parentConstraints[`${parentFieldName}.${fieldValue.key}`],
@@ -116,7 +123,8 @@ const transformQueryConstraintInputToParse = (
       };
     } else if (
       fields[parentFieldName] &&
-      (fields[parentFieldName].type === 'Pointer' || fields[parentFieldName].type === 'Relation')
+      (fields[parentFieldName].type === 'Pointer' ||
+        fields[parentFieldName].type === 'Relation')
     ) {
       const { targetClass } = fields[parentFieldName];
       if (fieldName === 'exists') {
@@ -185,7 +193,11 @@ const transformQueryConstraintInputToParse = (
         }
         break;
       case 'box':
-        if (typeof fieldValue === 'object' && fieldValue.bottomLeft && fieldValue.upperRight) {
+        if (
+          typeof fieldValue === 'object' &&
+          fieldValue.bottomLeft &&
+          fieldValue.upperRight
+        ) {
           fieldValue = [
             {
               __type: 'GeoPoint',
@@ -209,7 +221,11 @@ const transformQueryConstraintInputToParse = (
         }
         break;
       case 'centerSphere':
-        if (typeof fieldValue === 'object' && fieldValue.center && fieldValue.distance) {
+        if (
+          typeof fieldValue === 'object' &&
+          fieldValue.center &&
+          fieldValue.distance
+        ) {
           fieldValue = [
             {
               __type: 'GeoPoint',

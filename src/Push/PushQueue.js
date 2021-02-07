@@ -57,7 +57,10 @@ export class PushQueue {
             pushStatus: { objectId: pushStatus.objectId },
             applicationId: config.applicationId,
           };
-          this.parsePublisher.publish(this.channel, JSON.stringify(pushWorkItem));
+          this.parsePublisher.publish(
+            this.channel,
+            JSON.stringify(pushWorkItem)
+          );
           skip += limit;
         }
       });

@@ -33,15 +33,24 @@ const getAppleKeyByKeyId = async (keyId, cacheMaxEntries, cacheMaxAge) => {
 const getHeaderFromToken = token => {
   const decodedToken = jwt.decode(token, { complete: true });
   if (!decodedToken) {
-    throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND, `provided token does not decode as JWT`);
+    throw new Parse.Error(
+      Parse.Error.OBJECT_NOT_FOUND,
+      `provided token does not decode as JWT`
+    );
   }
 
   return decodedToken.header;
 };
 
-const verifyIdToken = async ({ token, id }, { clientId, cacheMaxEntries, cacheMaxAge }) => {
+const verifyIdToken = async (
+  { token, id },
+  { clientId, cacheMaxEntries, cacheMaxAge }
+) => {
   if (!token) {
-    throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND, `id token is invalid for this user.`);
+    throw new Parse.Error(
+      Parse.Error.OBJECT_NOT_FOUND,
+      `id token is invalid for this user.`
+    );
   }
 
   const { kid: keyId, alg: algorithm } = getHeaderFromToken(token);
@@ -51,7 +60,11 @@ const verifyIdToken = async ({ token, id }, { clientId, cacheMaxEntries, cacheMa
   cacheMaxAge = cacheMaxAge || ONE_HOUR_IN_MS;
   cacheMaxEntries = cacheMaxEntries || 5;
 
-  const appleKey = await getAppleKeyByKeyId(keyId, cacheMaxEntries, cacheMaxAge);
+  const appleKey = await getAppleKeyByKeyId(
+    keyId,
+    cacheMaxEntries,
+    cacheMaxAge
+  );
   const signingKey = appleKey.publicKey || appleKey.rsaPublicKey;
 
   try {
@@ -74,7 +87,10 @@ const verifyIdToken = async ({ token, id }, { clientId, cacheMaxEntries, cacheMa
   }
 
   if (jwtClaims.sub !== id) {
-    throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND, `auth data is invalid for this user.`);
+    throw new Parse.Error(
+      Parse.Error.OBJECT_NOT_FOUND,
+      `auth data is invalid for this user.`
+    );
   }
   return jwtClaims;
 };

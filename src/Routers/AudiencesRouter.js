@@ -8,7 +8,10 @@ export class AudiencesRouter extends ClassesRouter {
   }
 
   handleFind(req) {
-    const body = Object.assign(req.body, ClassesRouter.JSONFromQuery(req.query));
+    const body = Object.assign(
+      req.body,
+      ClassesRouter.JSONFromQuery(req.query)
+    );
     const options = ClassesRouter.optionsFromBody(body);
 
     return rest
@@ -18,8 +21,7 @@ export class AudiencesRouter extends ClassesRouter {
         '_Audience',
         body.where,
         options,
-        req.info.clientSDK,
-        req.info.context
+        req.info.clientSDK
       )
       .then(response => {
         response.results.forEach(item => {
@@ -39,9 +41,14 @@ export class AudiencesRouter extends ClassesRouter {
   }
 
   mountRoutes() {
-    this.route('GET', '/push_audiences', middleware.promiseEnforceMasterKeyAccess, req => {
-      return this.handleFind(req);
-    });
+    this.route(
+      'GET',
+      '/push_audiences',
+      middleware.promiseEnforceMasterKeyAccess,
+      req => {
+        return this.handleFind(req);
+      }
+    );
     this.route(
       'GET',
       '/push_audiences/:objectId',
@@ -50,9 +57,14 @@ export class AudiencesRouter extends ClassesRouter {
         return this.handleGet(req);
       }
     );
-    this.route('POST', '/push_audiences', middleware.promiseEnforceMasterKeyAccess, req => {
-      return this.handleCreate(req);
-    });
+    this.route(
+      'POST',
+      '/push_audiences',
+      middleware.promiseEnforceMasterKeyAccess,
+      req => {
+        return this.handleCreate(req);
+      }
+    );
     this.route(
       'PUT',
       '/push_audiences/:objectId',

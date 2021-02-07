@@ -14,13 +14,19 @@ const transformTypes = async (
     classGraphQLUpdateType,
     config: { isCreateEnabled, isUpdateEnabled },
   } = parseGraphQLSchema.parseClassTypes[className];
-  const parseClass = parseGraphQLSchema.parseClasses.find(clazz => clazz.className === className);
+  const parseClass = parseGraphQLSchema.parseClasses.find(
+    (clazz) => clazz.className === className
+  );
   if (fields) {
     const classGraphQLCreateTypeFields =
-      isCreateEnabled && classGraphQLCreateType ? classGraphQLCreateType.getFields() : null;
+      isCreateEnabled && classGraphQLCreateType
+        ? classGraphQLCreateType.getFields()
+        : null;
     const classGraphQLUpdateTypeFields =
-      isUpdateEnabled && classGraphQLUpdateType ? classGraphQLUpdateType.getFields() : null;
-    const promises = Object.keys(fields).map(async field => {
+      isUpdateEnabled && classGraphQLUpdateType
+        ? classGraphQLUpdateType.getFields()
+        : null;
+    const promises = Object.keys(fields).map(async (field) => {
       let inputTypeField;
       if (inputType === 'create' && classGraphQLCreateTypeFields) {
         inputTypeField = classGraphQLCreateTypeFields[field];
@@ -78,15 +84,18 @@ const transformers = {
     }
     throw new Parse.Error(Parse.Error.FILE_SAVE_ERROR, 'Invalid file upload.');
   },
-  polygon: value => ({
+  polygon: (value) => ({
     __type: 'Polygon',
-    coordinates: value.map(geoPoint => [geoPoint.latitude, geoPoint.longitude]),
+    coordinates: value.map((geoPoint) => [
+      geoPoint.latitude,
+      geoPoint.longitude,
+    ]),
   }),
-  geoPoint: value => ({
+  geoPoint: (value) => ({
     ...value,
     __type: 'GeoPoint',
   }),
-  ACL: value => {
+  ACL: (value) => {
     const parseACL = {};
     if (value.public) {
       parseACL['*'] = {
@@ -95,7 +104,7 @@ const transformers = {
       };
     }
     if (value.users) {
-      value.users.forEach(rule => {
+      value.users.forEach((rule) => {
         const globalIdObject = fromGlobalId(rule.userId);
         if (globalIdObject.type === '_User') {
           rule.userId = globalIdObject.id;
@@ -107,7 +116,7 @@ const transformers = {
       });
     }
     if (value.roles) {
-      value.roles.forEach(rule => {
+      value.roles.forEach((rule) => {
         parseACL[`role:${rule.roleName}`] = {
           read: rule.read,
           write: rule.write,
@@ -116,7 +125,13 @@ const transformers = {
     }
     return parseACL;
   },
-  relation: async (targetClass, field, value, parseGraphQLSchema, { config, auth, info }) => {
+  relation: async (
+    targetClass,
+    field,
+    value,
+    parseGraphQLSchema,
+    { config, auth, info }
+  ) => {
     if (Object.keys(value).length === 0)
       throw new Parse.Error(
         Parse.Error.INVALID_POINTER,
@@ -132,16 +147,22 @@ const transformers = {
     if (value.createAndAdd) {
       nestedObjectsToAdd = (
         await Promise.all(
-          value.createAndAdd.map(async input => {
+          value.createAndAdd.map(async (input) => {
             const parseFields = await transformTypes('create', input, {
               className: targetClass,
               parseGraphQLSchema,
               req: { config, auth, info },
             });
-            return objectsMutations.createObject(targetClass, parseFields, config, auth, info);
+            return objectsMutations.createObject(
+              targetClass,
+              parseFields,
+              config,
+              auth,
+              info
+            );
           })
         )
-      ).map(object => ({
+      ).map((object) => ({
         __type: 'Pointer',
         className: targetClass,
         objectId: object.objectId,
@@ -150,7 +171,7 @@ const transformers = {
 
     if (value.add || nestedObjectsToAdd.length > 0) {
       if (!value.add) value.add = [];
-      value.add = value.add.map(input => {
+      value.add = value.add.map((input) => {
         const globalIdObject = fromGlobalId(input);
         if (globalIdObject.type === targetClass) {
           input = globalIdObject.id;
@@ -170,7 +191,7 @@ const transformers = {
     if (value.remove) {
       op.ops.push({
         __op: 'RemoveRelation',
-        objects: value.remove.map(input => {
+        objects: value.remove.map((input) => {
           const globalIdObject = fromGlobalId(input);
           if (globalIdObject.type === targetClass) {
             input = globalIdObject.id;
@@ -185,7 +206,13 @@ const transformers = {
     }
     return op;
   },
-  pointer: async (targetClass, field, value, parseGraphQLSchema, { config, auth, info }) => {
+  pointer: async (
+    targetClass,
+    field,
+    value,
+    parseGraphQLSchema,
+    { config, auth, info }
+  ) => {
     if (Object.keys(value).length > 1 || Object.keys(value).length === 0)
       throw new Parse.Error(
         Parse.Error.INVALID_POINTER,

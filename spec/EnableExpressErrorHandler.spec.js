@@ -1,8 +1,7 @@
 const request = require('../lib/request');
 
 describe('Enable express error handler', () => {
-  it('should call the default handler in case of error, like updating a non existing object', async done => {
-    spyOn(console, 'error');
+  it('should call the default handler in case of error, like updating a non existing object', async (done) => {
     const parseServer = await reconfigureServer(
       Object.assign({}, defaultConfiguration, {
         enableExpressErrorHandler: true,

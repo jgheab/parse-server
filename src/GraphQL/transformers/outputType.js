@@ -1,7 +1,17 @@
 import * as defaultGraphQLTypes from '../loaders/defaultGraphQLTypes';
-import { GraphQLString, GraphQLFloat, GraphQLBoolean, GraphQLList, GraphQLNonNull } from 'graphql';
+import {
+  GraphQLString,
+  GraphQLFloat,
+  GraphQLBoolean,
+  GraphQLList,
+  GraphQLNonNull,
+} from 'graphql';
 
-const transformOutputTypeToGraphQL = (parseType, targetClass, parseClassTypes) => {
+const transformOutputTypeToGraphQL = (
+  parseType,
+  targetClass,
+  parseClassTypes
+) => {
   switch (parseType) {
     case 'String':
       return GraphQLString;
@@ -31,7 +41,9 @@ const transformOutputTypeToGraphQL = (parseType, targetClass, parseClassTypes) =
         parseClassTypes[targetClass] &&
         parseClassTypes[targetClass].classGraphQLFindResultType
       ) {
-        return new GraphQLNonNull(parseClassTypes[targetClass].classGraphQLFindResultType);
+        return new GraphQLNonNull(
+          parseClassTypes[targetClass].classGraphQLFindResultType
+        );
       } else {
         return new GraphQLNonNull(defaultGraphQLTypes.OBJECT);
       }

@@ -2,13 +2,21 @@ import { GraphQLNonNull } from 'graphql';
 import getFieldNames from 'graphql-list-fields';
 import Parse from 'parse/node';
 import rest from '../../rest';
+import Auth from '../../Auth';
 import { extractKeysAndInclude } from './parseClassTypes';
-import { Auth } from '../../Auth';
 
-const getUserFromSessionToken = async (context, queryInfo, keysPrefix, userId) => {
-  const { info, config } = context;
+const getUserFromSessionToken = async (
+  config,
+  info,
+  queryInfo,
+  keysPrefix,
+  validatedToken
+) => {
   if (!info || !info.sessionToken) {
-    throw new Parse.Error(Parse.Error.INVALID_SESSION_TOKEN, 'Invalid session token');
+    throw new Parse.Error(
+      Parse.Error.INVALID_SESSION_TOKEN,
+      'Invalid session token'
+    );
   }
   const sessionToken = info.sessionToken;
   const selectedFields = getFieldNames(queryInfo)
@@ -19,7 +27,7 @@ const getUserFromSessionToken = async (context, queryInfo, keysPrefix, userId) =
   const { keys } = keysAndInclude;
   let { include } = keysAndInclude;
 
-  if (userId && !keys && !include) {
+  if (validatedToken && !keys && !include) {
     return {
       sessionToken,
     };
@@ -27,44 +35,39 @@ const getUserFromSessionToken = async (context, queryInfo, keysPrefix, userId) =
     include = 'user';
   }
 
-  if (userId) {
-    // We need to re create the auth context
-    // to avoid security breach if userId is provided
-    context.auth = new Auth({
-      config,
-      isMaster: context.auth.isMaster,
-      user: { id: userId },
-    });
-  }
-
   const options = {};
   if (keys) {
     options.keys = keys
       .split(',')
-      .map(key => `${key}`)
+      .map(key => `user.${key}`)
       .join(',');
   }
   if (include) {
     options.include = include
       .split(',')
-      .map(included => `${included}`)
+      .map(included => `user.${included}`)
       .join(',');
   }
 
   const response = await rest.find(
     config,
-    context.auth,
-    '_User',
-    // Get the user it self from auth object
-    { objectId: context.auth.user.id },
+    Auth.master(config),
+    '_Session',
+    { sessionToken },
     options,
-    info.clientVersion,
-    info.context
+    info.clientVersion
   );
-  if (!response.results || response.results.length == 0) {
-    throw new Parse.Error(Parse.Error.INVALID_SESSION_TOKEN, 'Invalid session token');
+  if (
+    !response.results ||
+    response.results.length == 0 ||
+    !response.results[0].user
+  ) {
+    throw new Parse.Error(
+      Parse.Error.INVALID_SESSION_TOKEN,
+      'Invalid session token'
+    );
   } else {
-    const user = response.results[0];
+    const user = response.results[0].user;
     return {
       sessionToken,
       user,
@@ -80,11 +83,19 @@ const load = parseGraphQLSchema => {
   parseGraphQLSchema.addGraphQLQuery(
     'viewer',
     {
-      description: 'The viewer query can be used to return the current user data.',
+      description:
+        'The viewer query can be used to return the current user data.',
       type: new GraphQLNonNull(parseGraphQLSchema.viewerType),
       async resolve(_source, _args, context, queryInfo) {
         try {
-          return await getUserFromSessionToken(context, queryInfo, 'user.', false);
+          const { config, info } = context;
+          return await getUserFromSessionToken(
+            config,
+            info,
+            queryInfo,
+            'user.',
+            false
+          );
         } catch (e) {
           parseGraphQLSchema.handleError(e);
         }

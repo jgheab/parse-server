@@ -1,6 +1,7 @@
-const NullCacheAdapter = require('../lib/Adapters/Cache/NullCacheAdapter').default;
+const NullCacheAdapter = require('../lib/Adapters/Cache/NullCacheAdapter')
+  .default;
 
-describe('NullCacheAdapter', function () {
+describe('NullCacheAdapter', function() {
   const KEY = 'hello';
   const VALUE = 'world';
 
@@ -10,7 +11,12 @@ describe('NullCacheAdapter', function () {
     });
 
     // Verify all methods return promises.
-    Promise.all([cache.put(KEY, VALUE), cache.del(KEY), cache.get(KEY), cache.clear()]).then(() => {
+    Promise.all([
+      cache.put(KEY, VALUE),
+      cache.del(KEY),
+      cache.get(KEY),
+      cache.clear(),
+    ]).then(() => {
       done();
     });
   });

@@ -47,13 +47,19 @@ describe('JobSchedule', () => {
 
   it('should reject access when not using masterKey (/jobs)', done => {
     request(
-      Object.assign({ url: Parse.serverURL + '/cloud_code/jobs' }, defaultOptions)
+      Object.assign(
+        { url: Parse.serverURL + '/cloud_code/jobs' },
+        defaultOptions
+      )
     ).then(done.fail, () => done());
   });
 
   it('should reject access when not using masterKey (/jobs/data)', done => {
     request(
-      Object.assign({ url: Parse.serverURL + '/cloud_code/jobs/data' }, defaultOptions)
+      Object.assign(
+        { url: Parse.serverURL + '/cloud_code/jobs/data' },
+        defaultOptions
+      )
     ).then(done.fail, () => done());
   });
 
@@ -76,10 +82,12 @@ describe('JobSchedule', () => {
   });
 
   it('should allow access when using masterKey (GET /jobs)', done => {
-    request(Object.assign({ url: Parse.serverURL + '/cloud_code/jobs' }, masterKeyOptions)).then(
-      done,
-      done.fail
-    );
+    request(
+      Object.assign(
+        { url: Parse.serverURL + '/cloud_code/jobs' },
+        masterKeyOptions
+      )
+    ).then(done, done.fail);
   });
 
   it('should create a job schedule', done => {
@@ -99,7 +107,10 @@ describe('JobSchedule', () => {
       })
       .then(() => {
         return request(
-          Object.assign({ url: Parse.serverURL + '/cloud_code/jobs' }, masterKeyOptions)
+          Object.assign(
+            { url: Parse.serverURL + '/cloud_code/jobs' },
+            masterKeyOptions
+          )
         );
       })
       .then(res => {
@@ -256,7 +267,10 @@ describe('JobSchedule', () => {
       })
       .then(() => {
         return request(
-          Object.assign({ url: Parse.serverURL + '/cloud_code/jobs/data' }, masterKeyOptions)
+          Object.assign(
+            { url: Parse.serverURL + '/cloud_code/jobs/data' },
+            masterKeyOptions
+          )
         );
       })
       .then(response => {

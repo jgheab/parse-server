@@ -1,7 +1,11 @@
 import Parse from 'parse/node';
-import { GraphQLSchema, GraphQLObjectType, DocumentNode, GraphQLNamedType } from 'graphql';
-import { stitchSchemas } from '@graphql-tools/stitch';
-import { SchemaDirectiveVisitor } from '@graphql-tools/utils';
+import {
+  GraphQLSchema,
+  GraphQLObjectType,
+  DocumentNode,
+  GraphQLNamedType,
+} from 'graphql';
+import { mergeSchemas, SchemaDirectiveVisitor } from 'graphql-tools';
 import requiredParameter from '../requiredParameter';
 import * as defaultGraphQLTypes from './loaders/defaultGraphQLTypes';
 import * as parseClassTypes from './loaders/parseClassTypes';
@@ -9,7 +13,9 @@ import * as parseClassQueries from './loaders/parseClassQueries';
 import * as parseClassMutations from './loaders/parseClassMutations';
 import * as defaultGraphQLQueries from './loaders/defaultGraphQLQueries';
 import * as defaultGraphQLMutations from './loaders/defaultGraphQLMutations';
-import ParseGraphQLController, { ParseGraphQLConfig } from '../Controllers/ParseGraphQLController';
+import ParseGraphQLController, {
+  ParseGraphQLConfig,
+} from '../Controllers/ParseGraphQLController';
 import DatabaseController from '../Controllers/DatabaseController';
 import { toGraphQLError } from './parseGraphQLUtils';
 import * as schemaDirectives from './loaders/schemaDirectives';
@@ -65,7 +71,12 @@ class ParseGraphQLSchema {
   parseGraphQLConfig: ParseGraphQLConfig;
   log: any;
   appId: string;
-  graphQLCustomTypeDefs: ?(string | GraphQLSchema | DocumentNode | GraphQLNamedType[]);
+  graphQLCustomTypeDefs: ?(
+    | string
+    | GraphQLSchema
+    | DocumentNode
+    | GraphQLNamedType[]
+  );
 
   constructor(
     params: {
@@ -73,7 +84,12 @@ class ParseGraphQLSchema {
       parseGraphQLController: ParseGraphQLController,
       log: any,
       appId: string,
-      graphQLCustomTypeDefs: ?(string | GraphQLSchema | DocumentNode | GraphQLNamedType[]),
+      graphQLCustomTypeDefs: ?(
+        | string
+        | GraphQLSchema
+        | DocumentNode
+        | GraphQLNamedType[]
+      ),
     } = {}
   ) {
     this.parseGraphQLController =
@@ -82,9 +98,11 @@ class ParseGraphQLSchema {
     this.databaseController =
       params.databaseController ||
       requiredParameter('You must provide a databaseController instance!');
-    this.log = params.log || requiredParameter('You must provide a log instance!');
+    this.log =
+      params.log || requiredParameter('You must provide a log instance!');
     this.graphQLCustomTypeDefs = params.graphQLCustomTypeDefs;
-    this.appId = params.appId || requiredParameter('You must provide the appId!');
+    this.appId =
+      params.appId || requiredParameter('You must provide the appId!');
   }
 
   async load() {
@@ -181,71 +199,73 @@ class ParseGraphQLSchema {
 
       if (typeof this.graphQLCustomTypeDefs.getTypeMap === 'function') {
         const customGraphQLSchemaTypeMap = this.graphQLCustomTypeDefs.getTypeMap();
-        const findAndReplaceLastType = (parent, key) => {
-          if (parent[key].name) {
+        Object.values(customGraphQLSchemaTypeMap).forEach(
+          (customGraphQLSchemaType) => {
             if (
-              this.graphQLAutoSchema.getType(parent[key].name) &&
-              this.graphQLAutoSchema.getType(parent[key].name) !== parent[key]
+              !customGraphQLSchemaType ||
+              !customGraphQLSchemaType.name ||
+              customGraphQLSchemaType.name.startsWith('__')
             ) {
-              // To avoid unresolved field on overloaded schema
-              // replace the final type with the auto schema one
-              parent[key] = this.graphQLAutoSchema.getType(parent[key].name);
+              return;
             }
-          } else {
-            if (parent[key].ofType) {
-              findAndReplaceLastType(parent[key], 'ofType');
-            }
-          }
-        };
-        Object.values(customGraphQLSchemaTypeMap).forEach(customGraphQLSchemaType => {
-          if (
-            !customGraphQLSchemaType ||
-            !customGraphQLSchemaType.name ||
-            customGraphQLSchemaType.name.startsWith('__')
-          ) {
-            return;
-          }
-          const autoGraphQLSchemaType = this.graphQLAutoSchema.getType(
-            customGraphQLSchemaType.name
-          );
-          if (!autoGraphQLSchemaType) {
-            this.graphQLAutoSchema._typeMap[customGraphQLSchemaType.name] = customGraphQLSchemaType;
-          }
-        });
-        Object.values(customGraphQLSchemaTypeMap).forEach(customGraphQLSchemaType => {
-          if (
-            !customGraphQLSchemaType ||
-            !customGraphQLSchemaType.name ||
-            customGraphQLSchemaType.name.startsWith('__')
-          ) {
-            return;
-          }
-          const autoGraphQLSchemaType = this.graphQLAutoSchema.getType(
-            customGraphQLSchemaType.name
-          );
+            const autoGraphQLSchemaType = this.graphQLAutoSchema.getType(
+              customGraphQLSchemaType.name
+            );
+            if (
+              autoGraphQLSchemaType &&
+              typeof customGraphQLSchemaType.getFields === 'function'
+            ) {
+              const findAndReplaceLastType = (parent, key) => {
+                if (parent[key].name) {
+                  if (
+                    this.graphQLAutoSchema.getType(parent[key].name) &&
+                    this.graphQLAutoSchema.getType(parent[key].name) !==
+                      parent[key]
+                  ) {
+                    // To avoid unresolved field on overloaded schema
+                    // replace the final type with the auto schema one
+                    parent[key] = this.graphQLAutoSchema.getType(
+                      parent[key].name
+                    );
+                  }
+                } else {
+                  if (parent[key].ofType) {
+                    findAndReplaceLastType(parent[key], 'ofType');
+                  }
+                }
+              };
 
-          if (autoGraphQLSchemaType && typeof customGraphQLSchemaType.getFields === 'function') {
-            Object.values(customGraphQLSchemaType.getFields()).forEach(field => {
-              findAndReplaceLastType(field, 'type');
-            });
-            autoGraphQLSchemaType._fields = {
-              ...autoGraphQLSchemaType.getFields(),
-              ...customGraphQLSchemaType.getFields(),
-            };
+              Object.values(customGraphQLSchemaType.getFields()).forEach(
+                (field) => {
+                  findAndReplaceLastType(field, 'type');
+                }
+              );
+              autoGraphQLSchemaType._fields = {
+                ...autoGraphQLSchemaType.getFields(),
+                ...customGraphQLSchemaType.getFields(),
+              };
+            } else {
+              this.graphQLAutoSchema._typeMap[
+                customGraphQLSchemaType.name
+              ] = customGraphQLSchemaType;
+            }
           }
-        });
-        this.graphQLSchema = stitchSchemas({
-          schemas: [this.graphQLSchemaDirectivesDefinitions, this.graphQLAutoSchema],
+        );
+        this.graphQLSchema = mergeSchemas({
+          schemas: [
+            this.graphQLSchemaDirectivesDefinitions,
+            this.graphQLAutoSchema,
+          ],
           mergeDirectives: true,
         });
       } else if (typeof this.graphQLCustomTypeDefs === 'function') {
         this.graphQLSchema = await this.graphQLCustomTypeDefs({
           directivesDefinitionsSchema: this.graphQLSchemaDirectivesDefinitions,
           autoSchema: this.graphQLAutoSchema,
-          stitchSchemas,
+          mergeSchemas,
         });
       } else {
-        this.graphQLSchema = stitchSchemas({
+        this.graphQLSchema = mergeSchemas({
           schemas: [
             this.graphQLSchemaDirectivesDefinitions,
             this.graphQLAutoSchema,
@@ -256,28 +276,31 @@ class ParseGraphQLSchema {
       }
 
       const graphQLSchemaTypeMap = this.graphQLSchema.getTypeMap();
-      Object.keys(graphQLSchemaTypeMap).forEach(graphQLSchemaTypeName => {
+      Object.keys(graphQLSchemaTypeMap).forEach((graphQLSchemaTypeName) => {
         const graphQLSchemaType = graphQLSchemaTypeMap[graphQLSchemaTypeName];
         if (
           typeof graphQLSchemaType.getFields === 'function' &&
           this.graphQLCustomTypeDefs.definitions
         ) {
           const graphQLCustomTypeDef = this.graphQLCustomTypeDefs.definitions.find(
-            definition => definition.name.value === graphQLSchemaTypeName
+            (definition) => definition.name.value === graphQLSchemaTypeName
           );
           if (graphQLCustomTypeDef) {
             const graphQLSchemaTypeFieldMap = graphQLSchemaType.getFields();
-            Object.keys(graphQLSchemaTypeFieldMap).forEach(graphQLSchemaTypeFieldName => {
-              const graphQLSchemaTypeField = graphQLSchemaTypeFieldMap[graphQLSchemaTypeFieldName];
-              if (!graphQLSchemaTypeField.astNode) {
-                const astNode = graphQLCustomTypeDef.fields.find(
-                  field => field.name.value === graphQLSchemaTypeFieldName
-                );
-                if (astNode) {
-                  graphQLSchemaTypeField.astNode = astNode;
+            Object.keys(graphQLSchemaTypeFieldMap).forEach(
+              (graphQLSchemaTypeFieldName) => {
+                const graphQLSchemaTypeField =
+                  graphQLSchemaTypeFieldMap[graphQLSchemaTypeFieldName];
+                if (!graphQLSchemaTypeField.astNode) {
+                  const astNode = graphQLCustomTypeDef.fields.find(
+                    (field) => field.name.value === graphQLSchemaTypeFieldName
+                  );
+                  if (astNode) {
+                    graphQLSchemaTypeField.astNode = astNode;
+                  }
                 }
               }
-            });
+            );
           }
         }
       });
@@ -293,10 +316,17 @@ class ParseGraphQLSchema {
     return this.graphQLSchema;
   }
 
-  addGraphQLType(type, throwError = false, ignoreReserved = false, ignoreConnection = false) {
+  addGraphQLType(
+    type,
+    throwError = false,
+    ignoreReserved = false,
+    ignoreConnection = false
+  ) {
     if (
       (!ignoreReserved && RESERVED_GRAPHQL_TYPE_NAMES.includes(type.name)) ||
-      this.graphQLTypes.find(existingType => existingType.name === type.name) ||
+      this.graphQLTypes.find(
+        (existingType) => existingType.name === type.name
+      ) ||
       (!ignoreConnection && type.name.endsWith('Connection'))
     ) {
       const message = `Type ${type.name} could not be added to the auto schema because it collided with an existing type.`;
@@ -310,7 +340,12 @@ class ParseGraphQLSchema {
     return type;
   }
 
-  addGraphQLQuery(fieldName, field, throwError = false, ignoreReserved = false) {
+  addGraphQLQuery(
+    fieldName,
+    field,
+    throwError = false,
+    ignoreReserved = false
+  ) {
     if (
       (!ignoreReserved && RESERVED_GRAPHQL_QUERY_NAMES.includes(fieldName)) ||
       this.graphQLQueries[fieldName]
@@ -326,9 +361,15 @@ class ParseGraphQLSchema {
     return field;
   }
 
-  addGraphQLMutation(fieldName, field, throwError = false, ignoreReserved = false) {
+  addGraphQLMutation(
+    fieldName,
+    field,
+    throwError = false,
+    ignoreReserved = false
+  ) {
     if (
-      (!ignoreReserved && RESERVED_GRAPHQL_MUTATION_NAMES.includes(fieldName)) ||
+      (!ignoreReserved &&
+        RESERVED_GRAPHQL_MUTATION_NAMES.includes(fieldName)) ||
       this.graphQLMutations[fieldName]
     ) {
       const message = `Mutation ${fieldName} could not be added to the auto schema because it collided with an existing field.`;
@@ -375,7 +416,7 @@ class ParseGraphQLSchema {
     if (Array.isArray(enabledForClasses) || Array.isArray(disabledForClasses)) {
       let includedClasses = allClasses;
       if (enabledForClasses) {
-        includedClasses = allClasses.filter(clazz => {
+        includedClasses = allClasses.filter((clazz) => {
           return enabledForClasses.includes(clazz.className);
         });
       }
@@ -383,12 +424,12 @@ class ParseGraphQLSchema {
         // Classes included in `enabledForClasses` that
         // are also present in `disabledForClasses` will
         // still be filtered out
-        includedClasses = includedClasses.filter(clazz => {
+        includedClasses = includedClasses.filter((clazz) => {
           return !disabledForClasses.includes(clazz.className);
         });
       }
 
-      this.isUsersClassDisabled = !includedClasses.some(clazz => {
+      this.isUsersClassDisabled = !includedClasses.some((clazz) => {
         return clazz.className === '_User';
       });
 
@@ -403,7 +444,10 @@ class ParseGraphQLSchema {
    * that provide the parseClass along with
    * its parseClassConfig where provided.
    */
-  _getParseClassesWithConfig(parseClasses, parseGraphQLConfig: ParseGraphQLConfig) {
+  _getParseClassesWithConfig(
+    parseClasses,
+    parseGraphQLConfig: ParseGraphQLConfig
+  ) {
     const { classConfigs } = parseGraphQLConfig;
 
     // Make sures that the default classes and classes that
@@ -430,17 +474,19 @@ class ParseGraphQLSchema {
       }
     };
 
-    return parseClasses.sort(sortClasses).map(parseClass => {
+    return parseClasses.sort(sortClasses).map((parseClass) => {
       let parseClassConfig;
       if (classConfigs) {
-        parseClassConfig = classConfigs.find(c => c.className === parseClass.className);
+        parseClassConfig = classConfigs.find(
+          (c) => c.className === parseClass.className
+        );
       }
       return [parseClass, parseClassConfig];
     });
   }
 
   async _getFunctionNames() {
-    return await getFunctionNames(this.appId).filter(functionName => {
+    return await getFunctionNames(this.appId).filter((functionName) => {
       if (/^[_a-zA-Z][_a-zA-Z0-9]*$/.test(functionName)) {
         return true;
       } else {
@@ -464,10 +510,16 @@ class ParseGraphQLSchema {
     parseGraphQLConfig: ?ParseGraphQLConfig,
     functionNamesString: string,
   }): boolean {
-    const { parseClasses, parseClassesString, parseGraphQLConfig, functionNamesString } = params;
+    const {
+      parseClasses,
+      parseClassesString,
+      parseGraphQLConfig,
+      functionNamesString,
+    } = params;
 
     if (
-      JSON.stringify(this.parseGraphQLConfig) === JSON.stringify(parseGraphQLConfig) &&
+      JSON.stringify(this.parseGraphQLConfig) ===
+        JSON.stringify(parseGraphQLConfig) &&
       this.functionNamesString === functionNamesString
     ) {
       if (this.parseClasses === parseClasses) {

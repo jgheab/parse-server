@@ -46,10 +46,6 @@ function createPublisher(): any {
 }
 
 function createSubscriber(): any {
-  // createSubscriber is called once at live query server start
-  // to avoid max listeners warning, we should clean up the event emitter
-  // each time this function is called
-  emitter.removeAllListeners();
   return new Subscriber(emitter);
 }
 

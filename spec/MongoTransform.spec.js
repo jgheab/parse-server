@@ -460,7 +460,11 @@ describe('parseObjectToMongoObjectForCreate', () => {
   it('$regex in $all list', done => {
     const input = {
       arrayField: {
-        $all: [{ $regex: '^\\Qone\\E' }, { $regex: '^\\Qtwo\\E' }, { $regex: '^\\Qthree\\E' }],
+        $all: [
+          { $regex: '^\\Qone\\E' },
+          { $regex: '^\\Qtwo\\E' },
+          { $regex: '^\\Qthree\\E' },
+        ],
       },
     };
     const outputValue = {
@@ -621,7 +625,9 @@ describe('relativeTimeToDate', () => {
 
   describe('Error cases', () => {
     it('should error if string is completely gibberish', () => {
-      expect(transform.relativeTimeToDate('gibberishasdnklasdnjklasndkl123j123')).toEqual({
+      expect(
+        transform.relativeTimeToDate('gibberishasdnklasdnjklasndkl123j123')
+      ).toEqual({
         status: 'error',
         info: "Time should either start with 'in' or end with 'ago'",
       });

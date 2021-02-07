@@ -4,7 +4,6 @@ import AdaptableController from './AdaptableController';
 import MailAdapter from '../Adapters/Email/MailAdapter';
 import rest from '../rest';
 import Parse from 'parse/node';
-import AccountLockout from '../AccountLockout';
 
 var RestQuery = require('../RestQuery');
 var Auth = require('../Auth');
@@ -65,17 +64,15 @@ export class UserController extends AdaptableController {
       updateFields._email_verify_token_expires_at = { __op: 'Delete' };
     }
     const masterAuth = Auth.master(this.config);
-    var findUserForEmailVerification = new RestQuery(
+    var checkIfAlreadyVerified = new RestQuery(
       this.config,
       Auth.master(this.config),
       '_User',
-      { username: username }
+      { username: username, emailVerified: true }
     );
-    return findUserForEmailVerification.execute().then(result => {
-      if (result.results.length && result.results[0].emailVerified) {
+    return checkIfAlreadyVerified.execute().then(result => {
+      if (result.results.length) {
         return Promise.resolve(result.results.length[0]);
-      } else if (result.results.length) {
-        query.objectId = result.results[0].objectId;
       }
       return rest.update(this.config, masterAuth, '_User', query, updateFields);
     });
@@ -96,13 +93,18 @@ export class UserController extends AdaptableController {
           throw 'Failed to reset password: username / email / token is invalid';
         }
 
-        if (this.config.passwordPolicy && this.config.passwordPolicy.resetTokenValidityDuration) {
+        if (
+          this.config.passwordPolicy &&
+          this.config.passwordPolicy.resetTokenValidityDuration
+        ) {
           let expiresDate = results[0]._perishable_token_expires_at;
           if (expiresDate && expiresDate.__type == 'Date') {
             expiresDate = new Date(expiresDate.iso);
           }
-          if (expiresDate < new Date()) throw 'The password reset link has expired';
+          if (expiresDate < new Date())
+            throw 'The password reset link has expired';
         }
+
         return results[0];
       });
   }
@@ -119,8 +121,13 @@ export class UserController extends AdaptableController {
       where.email = user.email;
     }
 
-    var query = new RestQuery(this.config, Auth.master(this.config), '_User', where);
-    return query.execute().then(function (result) {
+    var query = new RestQuery(
+      this.config,
+      Auth.master(this.config),
+      '_User',
+      where
+    );
+    return query.execute().then(function(result) {
       if (result.results.length != 1) {
         throw undefined;
       }
@@ -137,7 +144,12 @@ export class UserController extends AdaptableController {
     this.getUserIfNeeded(user).then(user => {
       const username = encodeURIComponent(user.username);
 
-      const link = buildEmailLink(this.config.verifyEmailURL, username, token, this.config);
+      const link = buildEmailLink(
+        this.config.verifyEmailURL,
+        username,
+        token,
+        this.config
+      );
       const options = {
         appName: this.config.appName,
         link: link,
@@ -158,21 +170,12 @@ export class UserController extends AdaptableController {
    * @returns {*}
    */
   regenerateEmailVerifyToken(user) {
-    const { _email_verify_token } = user;
-    let { _email_verify_token_expires_at } = user;
-    if (_email_verify_token_expires_at && _email_verify_token_expires_at.__type === 'Date') {
-      _email_verify_token_expires_at = _email_verify_token_expires_at.iso;
-    }
-    if (
-      this.config.emailVerifyTokenReuseIfValid &&
-      this.config.emailVerifyTokenValidityDuration &&
-      _email_verify_token &&
-      new Date() < new Date(_email_verify_token_expires_at)
-    ) {
-      return Promise.resolve();
-    }
     this.setEmailVerifyToken(user);
-    return this.config.database.update('_User', { username: user.username }, user);
+    return this.config.database.update(
+      '_User',
+      { username: user.username },
+      user
+    );
   }
 
   resendVerificationEmail(username) {
@@ -189,7 +192,10 @@ export class UserController extends AdaptableController {
   setPasswordResetToken(email) {
     const token = { _perishable_token: randomString(25) };
 
-    if (this.config.passwordPolicy && this.config.passwordPolicy.resetTokenValidityDuration) {
+    if (
+      this.config.passwordPolicy &&
+      this.config.passwordPolicy.resetTokenValidityDuration
+    ) {
       token._perishable_token_expires_at = Parse._encode(
         this.config.generatePasswordResetTokenExpiresAt()
       );
@@ -204,66 +210,41 @@ export class UserController extends AdaptableController {
     );
   }
 
-  async sendPasswordResetEmail(email) {
+  sendPasswordResetEmail(email) {
     if (!this.adapter) {
       throw 'Trying to send a reset password but no adapter is set';
       //  TODO: No adapter?
     }
-    let user;
-    if (
-      this.config.passwordPolicy &&
-      this.config.passwordPolicy.resetTokenReuseIfValid &&
-      this.config.passwordPolicy.resetTokenValidityDuration
-    ) {
-      const results = await this.config.database.find(
-        '_User',
-        {
-          $or: [
-            { email, _perishable_token: { $exists: true } },
-            { username: email, email: { $exists: false }, _perishable_token: { $exists: true } },
-          ],
-        },
-        { limit: 1 }
+
+    return this.setPasswordResetToken(email).then(user => {
+      const token = encodeURIComponent(user._perishable_token);
+      const username = encodeURIComponent(user.username);
+
+      const link = buildEmailLink(
+        this.config.requestResetPasswordURL,
+        username,
+        token,
+        this.config
       );
-      if (results.length == 1) {
-        let expiresDate = results[0]._perishable_token_expires_at;
-        if (expiresDate && expiresDate.__type == 'Date') {
-          expiresDate = new Date(expiresDate.iso);
-        }
-        if (expiresDate > new Date()) {
-          user = results[0];
-        }
+      const options = {
+        appName: this.config.appName,
+        link: link,
+        user: inflate('_User', user),
+      };
+
+      if (this.adapter.sendPasswordResetEmail) {
+        this.adapter.sendPasswordResetEmail(options);
+      } else {
+        this.adapter.sendMail(this.defaultResetPasswordEmail(options));
       }
-    }
-    if (!user || !user._perishable_token) {
-      user = await this.setPasswordResetToken(email);
-    }
-    const token = encodeURIComponent(user._perishable_token);
-    const username = encodeURIComponent(user.username);
 
-    const link = buildEmailLink(this.config.requestResetPasswordURL, username, token, this.config);
-    const options = {
-      appName: this.config.appName,
-      link: link,
-      user: inflate('_User', user),
-    };
-
-    if (this.adapter.sendPasswordResetEmail) {
-      this.adapter.sendPasswordResetEmail(options);
-    } else {
-      this.adapter.sendMail(this.defaultResetPasswordEmail(options));
-    }
-
-    return Promise.resolve(user);
+      return Promise.resolve(user);
+    });
   }
 
   updatePassword(username, token, password) {
     return this.checkResetTokenValidity(username, token)
-      .then(user => updateUserPassword(user, password, this.config))
-      .then(user => {
-        const accountLockoutPolicy = new AccountLockout(user, this.config);
-        return accountLockoutPolicy.unlockAccount();
-      })
+      .then(user => updateUserPassword(user.objectId, password, this.config))
       .catch(error => {
         if (error && error.message) {
           // in case of Parse.Error, fail with the error message only
@@ -295,7 +276,9 @@ export class UserController extends AdaptableController {
       'Hi,\n\n' +
       'You requested to reset your password for ' +
       appName +
-      (user.get('username') ? " (your username is '" + user.get('username') + "')" : '') +
+      (user.get('username')
+        ? " (your username is '" + user.get('username') + "')"
+        : '') +
       '.\n\n' +
       '' +
       'Click here to reset it:\n' +
@@ -307,23 +290,26 @@ export class UserController extends AdaptableController {
 }
 
 // Mark this private
-function updateUserPassword(user, password, config) {
+function updateUserPassword(userId, password, config) {
   return rest.update(
     config,
     Auth.master(config),
     '_User',
-    { objectId: user.objectId },
+    { objectId: userId },
     {
       password: password,
     }
-  ).then(() => user);
+  );
 }
 
 function buildEmailLink(destination, username, token, config) {
   const usernameAndToken = `token=${token}&username=${username}`;
 
   if (config.parseFrameURL) {
-    const destinationWithoutHost = destination.replace(config.publicServerURL, '');
+    const destinationWithoutHost = destination.replace(
+      config.publicServerURL,
+      ''
+    );
 
     return `${config.parseFrameURL}?link=${encodeURIComponent(
       destinationWithoutHost

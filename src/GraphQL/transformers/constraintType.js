@@ -1,6 +1,11 @@
 import * as defaultGraphQLTypes from '../loaders/defaultGraphQLTypes';
 
-const transformConstraintTypeToGraphQL = (parseType, targetClass, parseClassTypes, fieldName) => {
+const transformConstraintTypeToGraphQL = (
+  parseType,
+  targetClass,
+  parseClassTypes,
+  fieldName
+) => {
   if (fieldName === 'id' || fieldName === 'objectId') {
     return defaultGraphQLTypes.ID_WHERE_INPUT;
   }

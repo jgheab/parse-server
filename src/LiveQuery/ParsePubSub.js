@@ -10,11 +10,15 @@ function useRedis(config: any): boolean {
   return typeof redisURL !== 'undefined' && redisURL !== '';
 }
 
-ParsePubSub.createPublisher = function (config: any): any {
+ParsePubSub.createPublisher = function(config: any): any {
   if (useRedis(config)) {
     return RedisPubSub.createPublisher(config);
   } else {
-    const adapter = loadAdapter(config.pubSubAdapter, EventEmitterPubSub, config);
+    const adapter = loadAdapter(
+      config.pubSubAdapter,
+      EventEmitterPubSub,
+      config
+    );
     if (typeof adapter.createPublisher !== 'function') {
       throw 'pubSubAdapter should have createPublisher()';
     }
@@ -22,11 +26,15 @@ ParsePubSub.createPublisher = function (config: any): any {
   }
 };
 
-ParsePubSub.createSubscriber = function (config: any): void {
+ParsePubSub.createSubscriber = function(config: any): void {
   if (useRedis(config)) {
     return RedisPubSub.createSubscriber(config);
   } else {
-    const adapter = loadAdapter(config.pubSubAdapter, EventEmitterPubSub, config);
+    const adapter = loadAdapter(
+      config.pubSubAdapter,
+      EventEmitterPubSub,
+      config
+    );
     if (typeof adapter.createSubscriber !== 'function') {
       throw 'pubSubAdapter should have createSubscriber()';
     }

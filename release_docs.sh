@@ -1,11 +1,11 @@
 #!/bin/sh -e
 set -x
-if [ "${GITHUB_ACTIONS}" = "" ];
+if [ "${TRAVIS_REPO_SLUG}" = "" ];
 then
-  echo "Cannot release docs without GITHUB_ACTIONS set"
+  echo "Cannot release docs without TRAVIS_REPO_SLUG set"
   exit 0;
 fi
-REPO="https://github.com/parse-community/parse-server"
+REPO="https://github.com/${TRAVIS_REPO_SLUG}"
 
 rm -rf docs
 git clone -b gh-pages --single-branch $REPO ./docs
@@ -15,9 +15,9 @@ cd ..
 
 DEST="master"
 
-if [ "${SOURCE_TAG}" != "" ];
+if [ "${TRAVIS_TAG}" != "" ];
 then
-  DEST="${SOURCE_TAG}"
+  DEST="${TRAVIS_TAG}"
   # change the default page to the latest
   echo "<meta http-equiv='refresh' content='0; url=/parse-server/api/${DEST}'>" > "docs/api/index.html"
 fi

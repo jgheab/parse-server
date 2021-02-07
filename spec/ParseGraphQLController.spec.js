@@ -37,7 +37,10 @@ describe('ParseGraphQLController', () => {
 
     const defaultFind = databaseController.find.bind(databaseController);
     databaseController.find = async (className, query, ...args) => {
-      if (className === GraphQLConfigClassName && isEqual(query, { objectId: GraphQLConfigId })) {
+      if (
+        className === GraphQLConfigClassName &&
+        isEqual(query, { objectId: GraphQLConfigId })
+      ) {
         const graphQLConfigRecord = getConfigFromDb();
         return graphQLConfigRecord ? [graphQLConfigRecord] : [];
       } else {
@@ -46,7 +49,12 @@ describe('ParseGraphQLController', () => {
     };
 
     const defaultUpdate = databaseController.update.bind(databaseController);
-    databaseController.update = async (className, query, update, fullQueryOptions) => {
+    databaseController.update = async (
+      className,
+      query,
+      update,
+      fullQueryOptions
+    ) => {
       databaseUpdateArgs = [className, query, update, fullQueryOptions];
       if (
         className === GraphQLConfigClassName &&
@@ -81,7 +89,9 @@ describe('ParseGraphQLController', () => {
             cacheController,
             mountGraphQL: false,
           })
-      ).toThrow('ParseGraphQLController requires a "databaseController" to be instantiated.');
+      ).toThrow(
+        'ParseGraphQLController requires a "databaseController" to be instantiated.'
+      );
     });
     it('should construct without a cacheController', () => {
       expect(
@@ -187,13 +197,13 @@ describe('ParseGraphQLController', () => {
   describe('updateGraphQLConfig', () => {
     const successfulUpdateResponse = { response: { result: true } };
 
-    it('should throw if graphQLConfig is not provided', async function () {
+    it('should throw if graphQLConfig is not provided', async function() {
       const parseGraphQLController = new ParseGraphQLController({
         databaseController,
       });
-      expectAsync(parseGraphQLController.updateGraphQLConfig()).toBeRejectedWith(
-        'You must provide a graphQLConfig!'
-      );
+      expectAsync(
+        parseGraphQLController.updateGraphQLConfig()
+      ).toBeRejectedWith('You must provide a graphQLConfig!');
     });
 
     it('should correct update the graphQLConfig object using the databaseController', async () => {
@@ -225,22 +235,32 @@ describe('ParseGraphQLController', () => {
       const parseGraphQLController = new ParseGraphQLController({
         databaseController,
       });
-      expectAsync(parseGraphQLController.updateGraphQLConfig([])).toBeRejected();
-      expectAsync(parseGraphQLController.updateGraphQLConfig(function () {})).toBeRejected();
-      expectAsync(parseGraphQLController.updateGraphQLConfig(Promise.resolve({}))).toBeRejected();
-      expectAsync(parseGraphQLController.updateGraphQLConfig('')).toBeRejected();
-      expectAsync(parseGraphQLController.updateGraphQLConfig({})).toBeResolvedTo(
-        successfulUpdateResponse
-      );
+      expectAsync(
+        parseGraphQLController.updateGraphQLConfig([])
+      ).toBeRejected();
+      expectAsync(
+        parseGraphQLController.updateGraphQLConfig(function() {})
+      ).toBeRejected();
+      expectAsync(
+        parseGraphQLController.updateGraphQLConfig(Promise.resolve({}))
+      ).toBeRejected();
+      expectAsync(
+        parseGraphQLController.updateGraphQLConfig('')
+      ).toBeRejected();
+      expectAsync(
+        parseGraphQLController.updateGraphQLConfig({})
+      ).toBeResolvedTo(successfulUpdateResponse);
     });
     it('should throw if graphQLConfig has an invalid root key', async () => {
       const parseGraphQLController = new ParseGraphQLController({
         databaseController,
       });
-      expectAsync(parseGraphQLController.updateGraphQLConfig({ invalidKey: true })).toBeRejected();
-      expectAsync(parseGraphQLController.updateGraphQLConfig({})).toBeResolvedTo(
-        successfulUpdateResponse
-      );
+      expectAsync(
+        parseGraphQLController.updateGraphQLConfig({ invalidKey: true })
+      ).toBeRejected();
+      expectAsync(
+        parseGraphQLController.updateGraphQLConfig({})
+      ).toBeResolvedTo(successfulUpdateResponse);
     });
     it('should throw if graphQLConfig has invalid class filters', async () => {
       const parseGraphQLController = new ParseGraphQLController({
@@ -278,7 +298,9 @@ describe('ParseGraphQLController', () => {
       const parseGraphQLController = new ParseGraphQLController({
         databaseController,
       });
-      expectAsync(parseGraphQLController.updateGraphQLConfig({ classConfigs: {} })).toBeRejected();
+      expectAsync(
+        parseGraphQLController.updateGraphQLConfig({ classConfigs: {} })
+      ).toBeRejected();
       expectAsync(
         parseGraphQLController.updateGraphQLConfig({ classConfigs: [null] })
       ).toBeRejected();
@@ -292,9 +314,9 @@ describe('ParseGraphQLController', () => {
           classConfigs: [{ className: 'ValidClass' }, null],
         })
       ).toBeRejected();
-      expectAsync(parseGraphQLController.updateGraphQLConfig({ classConfigs: [] })).toBeResolvedTo(
-        successfulUpdateResponse
-      );
+      expectAsync(
+        parseGraphQLController.updateGraphQLConfig({ classConfigs: [] })
+      ).toBeResolvedTo(successfulUpdateResponse);
       expectAsync(
         parseGraphQLController.updateGraphQLConfig({
           classConfigs: [
@@ -917,26 +939,34 @@ describe('ParseGraphQLController', () => {
       let cacheBeforeValue;
       let cacheAfterValue;
 
-      cacheBeforeValue = await cacheController.graphQL.get(mountedController.configCacheKey);
+      cacheBeforeValue = await cacheController.graphQL.get(
+        mountedController.configCacheKey
+      );
       expect(cacheBeforeValue).toBeNull();
 
       await mountedController.updateGraphQLConfig({
         enabledForClasses: ['SuperCar'],
       });
-      cacheAfterValue = await cacheController.graphQL.get(mountedController.configCacheKey);
+      cacheAfterValue = await cacheController.graphQL.get(
+        mountedController.configCacheKey
+      );
       expect(cacheAfterValue).toEqual({ enabledForClasses: ['SuperCar'] });
 
       // reset
       removeConfigFromDb();
       cacheController.graphQL.clear();
 
-      cacheBeforeValue = await cacheController.graphQL.get(unmountedController.configCacheKey);
+      cacheBeforeValue = await cacheController.graphQL.get(
+        unmountedController.configCacheKey
+      );
       expect(cacheBeforeValue).toBeNull();
 
       await unmountedController.updateGraphQLConfig({
         enabledForClasses: ['SuperCar'],
       });
-      cacheAfterValue = await cacheController.graphQL.get(unmountedController.configCacheKey);
+      cacheAfterValue = await cacheController.graphQL.get(
+        unmountedController.configCacheKey
+      );
       expect(cacheAfterValue).toBeNull();
     });
   });

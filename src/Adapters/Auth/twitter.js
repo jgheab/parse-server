@@ -5,7 +5,10 @@ var Parse = require('parse/node').Parse;
 // Returns a promise that fulfills iff this user id is valid.
 function validateAuthData(authData, options) {
   if (!options) {
-    throw new Parse.Error(Parse.Error.INTERNAL_SERVER_ERROR, 'Twitter auth configuration missing');
+    throw new Parse.Error(
+      Parse.Error.INTERNAL_SERVER_ERROR,
+      'Twitter auth configuration missing'
+    );
   }
   options = handleMultipleConfigurations(authData, options);
   var client = new OAuth(options);
@@ -17,7 +20,10 @@ function validateAuthData(authData, options) {
     if (data && data.id_str == '' + authData.id) {
       return;
     }
-    throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND, 'Twitter auth is invalid for this user.');
+    throw new Parse.Error(
+      Parse.Error.OBJECT_NOT_FOUND,
+      'Twitter auth is invalid for this user.'
+    );
   });
 }
 
@@ -30,14 +36,20 @@ function handleMultipleConfigurations(authData, options) {
   if (Array.isArray(options)) {
     const consumer_key = authData.consumer_key;
     if (!consumer_key) {
-      throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND, 'Twitter auth is invalid for this user.');
+      throw new Parse.Error(
+        Parse.Error.OBJECT_NOT_FOUND,
+        'Twitter auth is invalid for this user.'
+      );
     }
     options = options.filter(option => {
       return option.consumer_key == consumer_key;
     });
 
     if (options.length == 0) {
-      throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND, 'Twitter auth is invalid for this user.');
+      throw new Parse.Error(
+        Parse.Error.OBJECT_NOT_FOUND,
+        'Twitter auth is invalid for this user.'
+      );
     }
     options = options[0];
   }

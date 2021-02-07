@@ -9,9 +9,15 @@ const getClass = async (name, schema) => {
     return await schema.getOneSchema(name, true);
   } catch (e) {
     if (e === undefined) {
-      throw new Parse.Error(Parse.Error.INVALID_CLASS_NAME, `Class ${name} does not exist.`);
+      throw new Parse.Error(
+        Parse.Error.INVALID_CLASS_NAME,
+        `Class ${name} does not exist.`
+      );
     } else {
-      throw new Parse.Error(Parse.Error.INTERNAL_SERVER_ERROR, 'Database adapter error.');
+      throw new Parse.Error(
+        Parse.Error.INTERNAL_SERVER_ERROR,
+        'Database adapter error.'
+      );
     }
   }
 };
@@ -20,7 +26,8 @@ const load = parseGraphQLSchema => {
   parseGraphQLSchema.addGraphQLQuery(
     'class',
     {
-      description: 'The class query can be used to retrieve an existing object class.',
+      description:
+        'The class query can be used to retrieve an existing object class.',
       args: {
         name: schemaTypes.CLASS_NAME_ATT,
       },
@@ -50,8 +57,11 @@ const load = parseGraphQLSchema => {
   parseGraphQLSchema.addGraphQLQuery(
     'classes',
     {
-      description: 'The classes query can be used to retrieve the existing object classes.',
-      type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(schemaTypes.CLASS))),
+      description:
+        'The classes query can be used to retrieve the existing object classes.',
+      type: new GraphQLNonNull(
+        new GraphQLList(new GraphQLNonNull(schemaTypes.CLASS))
+      ),
       resolve: async (_source, _args, context) => {
         try {
           const { config, auth } = context;
