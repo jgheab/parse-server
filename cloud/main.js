@@ -29,6 +29,90 @@ Parse.Cloud.beforeSave(Parse.User, async (request) => {
   acl.setRoleWriteAccess('admin', true);
 });
 
+Parse.Cloud.beforeSave("Quiz", async (request) => {
+  var currentUser = request.user;
+  var quiz = request.object;
+  if (request.original == null) {
+    quiz.set("author", currentUser);
+    if (currentUser.has("displayName")) {
+      quiz.set("authorDisplayName", currentUser.get("displayName"));
+    } else if (currentUser.has("username")) {
+      quiz.set("authorDisplayName", currentUser.get("username"));
+    }
+  }
+},{
+   fields : {
+     name : {
+       required: true,
+       type: String,
+       options: val => {
+         return typeof val === 'string' && val.length > 0 && val.length <= 100;
+       },
+       error: "Quiz name length must be greater than 0 and less than or equal to 100"
+     },
+     description : {
+       required: true,
+       type: String,
+       options: val => {
+         return typeof val === 'string' && val.length > 0 && val.length <= 300;
+       },
+       error: "Quiz name length must be greater than 0 and less than or equal to 300"
+     },
+     questions : {
+       required: true,
+       type: Object,
+       options: val => {
+         _logger.logger.info("[DELETEME] val = ", val);
+
+         if (!Array.isArray(val)) {
+           throw new Error("Questions not stored as an array");
+         }
+         if (val.length = 0) {
+           throw new Error("Quiz must contain at least one question");
+         };
+         for (var i = 0; i < val.length; i++) {
+           var question = val[i];
+           if (!question.prompt) {
+             throw new Error("All questions must contain a prompt");
+           }
+           if (typeof question.prompt !== 'string') {
+             throw new Error("Question prompt must be a string");
+           }
+           if (question.type == null) {
+             throw new Error("All questions must contain a type");
+           }
+           if (question.type < 1 || question.type > 3) {
+             throw new Error("All questions must have a valid type");
+           }
+           if (question.answer == null) {
+             throw new Error("All questions must have an answer");
+           }
+           if (question.type == 1) {
+             // T/F question.
+             if (typeof question.answer !== 'boolean') {
+               throw new Error("T/F questions must have boolean answer");
+             }
+           } else if (question.type == 2) {
+             // Multiple choice
+             if (!Array.isArray(question.answer) || question.answer.length == 0) {
+               throw new Error("Multiple choice answers must be supplied in array");
+             }
+             if (!question.decoys || !Array.isArray(question.decoys) || question.decoys.length == 0) {
+               throw new Error("Multiple choice decoys must be supplied in array");
+             }
+           } else if (question.type == 3) {
+             // Exact answer
+             if (!Array.isArray(question.answer) || question.answer.length == 0) {
+               throw new Error("Exact answers must be supplied in array");
+             }
+           }
+         }
+         return true;
+       },
+     }
+   }
+ });
+
 //Parse.Cloud.afterSave(Parse.User, async (request) => {
 //  _logger.logger.info('[DELETEME] afterSave called for Parse.User.');
 //  var user = request.object;
@@ -154,4 +238,86 @@ Parse.Cloud.define("updateProfilePhoto", async (request) => {
 
   _logger.logger.info('Successfully updated user profile photo.');
   return updatedUser;
+});
+
+Parse.Cloud.define("listQuizzes", async (request) => {
+  console.log('[DELETEME] listQuizzes called');
+
+  var user = request.user;
+  var limit = request.params.limit ?? 20;
+  var skip = request.params.skip ?? 0;
+  var ascending = request.params.ascending;
+  var descending = request.params.descending;
+
+  if (!user) {
+    const message = 'Current user not found.';
+    console.error(message);
+    return new Error(message);
+  }
+
+  if (typeof limit !== 'number' || limit < 10 || limit > 100) {
+    const message = 'Invalid limit.';
+    console.error(message);
+    return new Error(message);
+  }
+
+  if (typeof skip !== 'number' || skip < 0) {
+    const message = 'Invalid skip.';
+    console.error(message);
+    return new Error(message);
+  }
+
+  if (ascending != null) {
+    if (!Array.isArray(ascending)) {
+      const message = 'Invalid ascending.';
+      console.error(message);
+      return new Error(message);
+    }
+    for (var i = 0; i < ascending.length; i++) {
+      if (typeof ascending[i] !== 'string') {
+        const message = 'Invalid ascending.';
+        console.error(message);
+        return new Error(message);
+      }
+    }
+  }
+
+  if (descending != null) {
+      if (!Array.isArray(descending)) {
+        const message = 'Invalid descending.';
+        console.error(message);
+        return new Error(message);
+      }
+      for (var i = 0; i < descending.length; i++) {
+        if (typeof descending[i] !== 'string') {
+          const message = 'Invalid descending.';
+          console.error(message);
+          return new Error(message);
+        }
+      }
+    }
+
+  var query = new Parse.Query("Quiz");
+  query.limit(limit);
+  query.skip(skip);
+//  query.equalTo('searchable', true);
+  if (Array.isArray(ascending)) {
+    query.addAscending(ascending);
+  }
+  if (Array.isArray(descending)) {
+    query.addDescending(descending);
+  }
+
+  var results;
+  try {
+    results = await query.find({useMasterKey: true});
+  } catch (error) {
+    var message = 'Failed to fetch quizzes';
+    console.error(message, ' due to error: ', error);
+    throw message;
+  }
+
+  console.log('[DELETEME] listQuizzes fetched results: ', results);
+
+  return results;
 });
