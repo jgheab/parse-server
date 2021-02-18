@@ -40,6 +40,20 @@ Parse.Cloud.beforeSave("Quiz", async (request) => {
       quiz.set("authorDisplayName", currentUser.get("username"));
     }
   }
+
+  // Remove whitespace in answers.
+  var questions = quiz.get('questions');
+  for (var i = 0; i < questions.length; i++) {
+    var question = questions[i];
+    if (question.type == 3) {
+      // Exact answer
+      var answers = question.answer;
+      for (var i = 0; i < answers.length; i++) {
+        var answer = answers[i];
+         answers[i] = answer.trim();
+      }
+    }
+  }
 },{
    fields : {
      name : {
@@ -62,8 +76,6 @@ Parse.Cloud.beforeSave("Quiz", async (request) => {
        required: true,
        type: Object,
        options: val => {
-         _logger.logger.info("[DELETEME] val = ", val);
-
          if (!Array.isArray(val)) {
            throw new Error("Questions not stored as an array");
          }
@@ -241,8 +253,6 @@ Parse.Cloud.define("updateProfilePhoto", async (request) => {
 });
 
 Parse.Cloud.define("listQuizzes", async (request) => {
-  console.log('[DELETEME] listQuizzes called');
-
   var user = request.user;
   var limit = request.params.limit ?? 20;
   var skip = request.params.skip ?? 0;
@@ -316,8 +326,6 @@ Parse.Cloud.define("listQuizzes", async (request) => {
     console.error(message, ' due to error: ', error);
     throw message;
   }
-
-  console.log('[DELETEME] listQuizzes fetched results: ', results);
 
   return results;
 });
